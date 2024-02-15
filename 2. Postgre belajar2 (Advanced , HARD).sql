@@ -1,7 +1,9 @@
 -- ADVANCED
 -- HARD
 
-create database belajar2;
+-- Gunakan db belajar2.sql
+
+-- create database belajar2;
 
 create table emp
 (
@@ -1325,6 +1327,32 @@ INSERT INTO empl values(9,'Mukesh',300,6000,6,51);
 INSERT INTO empl values(10,'Rakesh',300,7000,6,50);
 select * from empl;
 
+-- tampilkan salary karyawan yang lebih dari rata rata gaji semua karyawan.
+-- pakai sub-kueri
+select * from empl 
+where salary>(select avg(salary) from empl);
+
+-- tampilkan salary karyawan yang lebih dari rata rata gaji semua karyawan.
+-- pakai CTE
+with avg_salary as 
+(
+	select avg(salary) as avg_sal 
+	from empl
+)
+select * from empl
+inner join avg_salary on salary > avg_sal;
+
+-- tampilkan rata rata gaji menggunakan 2 cte
+with avg_salary as 
+(
+	select avg(salary) as avg_sal from empl
+),
+max_sal as 
+(
+	select max( avg_sal) as  "max_sal a.k.a avg_sal" from avg_salary 
+)
+select * from max_sal;
+
 -- UNSOLVED DOCUMENTATION
 with value_S as (
     select *,
@@ -1521,4 +1549,30 @@ select count(age) from customern;
 
 -- tampilkan jumlah data age (termasuk data age yang null)
 select count(coalesce(age,0)) from customern;
+
+-- tampilkan rata rata data age (kecuali data age yang null)
+select avg(age) from customern;
+
+-- tampilkan rata rata data age (termasuk data age yang null=0)
+select avg(coalesce(age,0)) from customern;
+
+-- Coba untuk membuat kueri yang berjalan, tanpa menggunakan table apapun,
+-- gunakan CTE untuk menampung data.
+with emp as 
+(
+	select 1 as emp_id,1000 as emp_salary,1 as dep_id
+	union all select 2 as emp_id,2000 as emp_salary,2 as dep_id
+	union all select 3 as emp_id,3000 as emp_salary,3 as dep_id
+	union all select 4 as emp_id,4000 as emp_salary,4 as dep_id
+),
+dep as 
+(
+	select 1 as dep_id,'d1' as dep_name
+	union all select 2 as dep_id,'d2' as dep_name
+	union all select 3 as dep_id,'d3' as dep_name
+	union all select 4 as dep_id,'d4' as dep_name
+)
+SELECT emp.*, dep.*
+FROM emp
+JOIN dep ON emp.dep_id = dep.dep_id;
 
