@@ -1,4 +1,5 @@
 -- ADVANCED
+-- HARD
 
 create database belajar2;
 
@@ -955,4 +956,440 @@ SELECT *,
 FROM year_sales  
 ORDER BY order_year;
 
- 
+
+
+insert into empm values
+(1, 'Ankit', '1000', 10000, 4);
+
+select * from empm;
+
+-- Menghapus data duplikat
+WITH ranked_employees AS (
+    SELECT *,
+           ROW_NUMBER() OVER(PARTITION BY emp_name, salary ORDER BY emp_id) AS row_num
+    FROM empm
+)
+DELETE FROM empm
+WHERE (emp_name, salary, emp_id) IN (
+    SELECT emp_name, salary, emp_id
+    FROM ranked_employees
+    WHERE row_num > 1
+);
+
+-- tampilkan salary terbesar
+select max(salary) 
+from emp 
+where salary < (select max(salary) from emp);
+
+-- tampilkan satu baris data dengan gaji tertinggi.
+SELECT * 
+FROM (
+    SELECT * 
+    FROM emp 
+    ORDER BY salary desc
+    limit 1
+) AS SAL_ORDER;
+-- Tampilkan salary tertinggi ke dua
+with 
+salary_cte as
+(
+	SELECT * , 
+		    DENSE_RANK() OVER(order by salary desc) as sal_order 
+	FROM emp
+)
+select * from salary_cte where sal_order = 2;
+
+-- TAmpilkan nama manager setiap employee
+SELECT e.emp_id,
+	   e.emp_name as employeeee,
+	   m.emp_name as magr_name
+FROM EMPM e 
+INNER JOIN empm m on e.manager_id=m.emp_id;
+
+-- tampilkan employee yang memiliki salary lebih dari 10000
+select * from emp where salary>10000;
+
+-- hitung rata-rata gaji per departemen
+-- gunakan klausa HAVING untuk rata-rata gajinya lebih besar dari 9500.
+select department_id,
+	   avg(salary)
+from emp group by department_id
+having avg(salary) > 9500 ;
+
+-- select * from emp;
+
+-- hitung rata-rata gaji per departemen
+-- hanya untuk karyawan yang memiliki gaji di atas 10.000
+-- gunakan klausa HAVING untuk rata-rata gajinya lebih besar dari 12.000
+select department_id,avg(salary) 
+from emp
+where salary > 10000 
+group by department_id
+having avg(salary) > 12000 ;
+
+
+-- nalytical Functions | Lead | Lag
+create table sales_table(
+	year int,
+	quater_name varchar(5),
+	sales int
+);
+
+select * from sales_table;
+insert into sales_table values (2018,'Q1',5000);
+insert into sales_table values (2018,'Q2',5500);
+insert into sales_table values (2018,'Q3',2500);
+insert into sales_table values (2018,'Q4',10000);
+insert into sales_table values (2019,'Q1',10000);
+insert into sales_table values (2019,'Q2',5500);
+insert into sales_table values (2019,'Q3',3000);
+insert into sales_table values (2019,'Q4',6000);
+select * from sales_table;
+
+-- tampilkan laporan penjualan per kuartal. mencakup informasi tahun (years), 
+-- nama kuartal (quaters), penjualan saat ini (current_sales), dan penjualan kuartal 
+-- sebelumnya (previous_quater_sales).
+select year as years,
+	   quater_name as quaters,
+	   sales as current_sales,
+	   LAG(sales) OVER(partition by year order by quater_name) as previous_quater_sales
+from sales_table;
+
+-- tampilkan laporan penjualan per kuartal. mencakup informasi tahun (years), 
+-- nama kuartal (quaters), penjualan saat ini (current_sales), dan penjualan kuartal 
+-- sebelumnya (previous_quater_sales).
+-- penjualan dua kuartal sebelumnya.
+select year as years,
+	   quater_name as quaters,
+	   sales as current_sales,
+	   LAG(sales,2) OVER(partition by year order by quater_name) as previous_quater_sales
+from sales_table;
+
+-- lead function opposite of lag
+-- tampilkan laporan penjualan per kuartal. mencakup informasi tahun (years), 
+-- nama kuartal (quaters), penjualan saat ini (current_sales), dan penjualan kuartal 
+-- sebelumnya (previous_quater_sales).
+-- DESC
+select year as years,
+	   quater_name as quaters,
+	   sales as current_sales,
+	   Lead(sales) OVER(partition by year order by quater_name desc) as previous_quater_sales
+from sales_table;
+
+create table empy2(
+	emp_id int,
+	name varchar(20)
+);
+
+select * from empy2;
+insert into empy2 values (1,'Owens, Adams');
+insert into empy2 values (2,'Hopkins, David');
+insert into empy2 values (1,'Jonas, Mary');
+insert into empy2 values (1,'Rhodes, Susssan');
+
+UPDATE empy2
+SET emp_id = '2'
+WHERE name like '%Hopkins%';
+select * from empy2;
+
+UPDATE empy2
+SET emp_id = '3'
+WHERE name like '%Jonas%';
+select * from empy2;
+
+UPDATE empy2
+SET emp_id = '4'
+WHERE name like '%Rhodes%';
+select * from empy2;
+
+-- Cari posisi koma pada string ke berapa
+SELECT name, POSITION(',' IN name) AS position_of_comma FROM empy2;
+
+-- tampikan nama sebelum koma
+SELECT name, LEFT(name, POSITION(',' IN name) - 1) AS last_name FROM empy2;
+
+-- pisahkan isi name dari koma, tempatkan pada
+-- kolom last name(kiri) dan first name(kanan)
+SELECT 
+    name, 
+    LEFT(name, POSITION(',' IN name) - 1) AS last_name,
+    RIGHT(name, LENGTH(name) - POSITION(',' IN name)) AS first_name
+FROM 
+    empy2;
+   
+-- Pisahkan nama depan dan belakang dari koma, tampung pada tabel bernama value
+SELECT unnest(string_to_array('Owens, Adams', ',')) AS value;
+
+-- Pisahkan nama depan dan belakang dari koma, menggunakan CROSS JOIN
+SELECT emp_id, value,
+       row_number() OVER(PARTITION BY emp_id ORDER BY emp_id ) AS row_num
+FROM empy2
+CROSS JOIN LATERAL unnest(string_to_array(name, ',')) AS value;
+
+-- Dari kueri diatas/sebelumnya buat dalam bentuk pivot
+WITH NAME_CTE AS (
+    SELECT emp_id, 
+           value AS value,
+           row_number() OVER(PARTITION BY emp_id ORDER BY emp_id ) AS row_num
+    FROM empy2
+    CROSS JOIN LATERAL unnest(string_to_array(name, ',')) AS value
+)
+SELECT emp_id,
+       MAX(CASE WHEN row_num = 1 THEN value END) AS last_name,
+       MAX(CASE WHEN row_num = 2 THEN value END) AS first_name
+FROM NAME_CTE
+GROUP BY emp_id;
+
+
+SELECT * FROM superstore_orders;
+-- tampilkan hari dari tanggal yang ada pada order date
+SELECT TO_CHAR(order_date, 'Day') AS day_of_week, order_date FROM superstore_orders;
+
+-- tampilkan hari ke berapa dalam week
+SELECT EXTRACT(DOW FROM order_date) AS day_of_week, order_date 
+FROM superstore_orders;
+
+-- tampilkan hari ke berapa dalam week
+SELECT 
+    CASE 
+        WHEN EXTRACT(DOW FROM order_date) = 0 THEN 7
+        ELSE EXTRACT(DOW FROM order_date)
+    END AS day_of_week,
+    order_date 
+FROM 
+    superstore_orders;
+   
+create table emp_mgr_age
+(
+	emp_id int,
+	emp_name Varchar(20),
+	department_id Varchar(20),
+	salary int,
+	manager_id int,
+	emp_age int
+);
+
+INSERT INTO emp_mgr_age values(1,'Ankit',100,10000,4,39);
+INSERT INTO emp_mgr_age values(2,'Mohit',100,15000,5,48);
+INSERT INTO emp_mgr_age values(3,'Vikas',100,10000,4,37);
+INSERT INTO emp_mgr_age values(4,'Rohit',100,5000,2,16);
+INSERT INTO emp_mgr_age values(5,'Mudit',200,12000,6,55);
+insert INTO emp_mgr_age values(6,'Agam',200,12000,2,14);
+INSERT INTO emp_mgr_age values(7,'Sanjay',200,9000,2,13);
+INSERT INTO emp_mgr_age values(8,'Ashish',200,5000,2,12);
+INSERT INTO emp_mgr_age values(9,'Rakesh',300,5000,6,51);
+INSERT INTO emp_mgr_age values(10,'Mukesh',300,5000,6,50);
+select * from emp_mgr_age;
+
+-- tampilkan usia setiap karyawan
+-- usia kurang dari 20 = Kids
+-- usia 20 sampai 40 = Adult
+-- usia lebih dari 40 = old
+select  * ,
+		CASE 
+			when emp_age < 20 then 'Kids'
+		    when emp_age >= 20 and emp_age <=40 then 'Adult'
+		    else 'old'
+		End as emp_age_bracket
+from emp_mgr_age
+order by emp_age;
+
+
+CREATE TABLE dept (
+    dept_id INT PRIMARY KEY,
+    dep_name VARCHAR(100)
+);
+
+INSERT INTO dept VALUES (100, 'Data Analytics');
+INSERT INTO dept VALUES (200, 'Business Analytics');
+INSERT INTO dept VALUES (300, 'Marketing Analytics');
+INSERT INTO dept VALUES (400, 'Text Analytics');
+select * from dept;
+
+--truncate table dept;
+
+-- ganti nilai dep_name yang berisi "Analytics" dengan "Mining"
+-- dan ganti isi nilai string emp_name dari string ke 1 sampai ke 4
+-- dengan "demo" 
+SELECT *,
+       REPLACE(dep_name, 'Analytics', 'Mining') AS replace_string,
+       CONCAT('demo', SUBSTRING(dep_name FROM 4)) AS stuff_string
+FROM dept;
+select * from dept;
+
+-- ganti nilai dep_name yang berisi "Analytics" dengan "Mining"
+-- dan ganti isi nilai string emp_name dari string ke 1 sampai ke 4
+-- dengan "demo".
+-- Tampilkan string apa yang diganti dari string 1 sampai ke 4.
+SELECT *,
+       REPLACE(dep_name, 'Analytics', 'Mining') AS replace_string,
+       CONCAT('demo', SUBSTRING(dep_name FROM 4)) AS stuff_string,
+       SUBSTRING(dep_name from 1 for 4) AS substring_string
+FROM dept;
+
+SELECT *,
+       REPLACE(dep_name, 'Analytics', 'Mining') AS replace_string,
+       CONCAT('demo', SUBSTRING(dep_name FROM 4)) AS stuff_string,
+       SUBSTRING(dep_name FROM 2 FOR 3) AS substring_string,
+       REPLACE(dep_name, 'A', 'S') AS translate_string
+FROM dept;
+
+SELECT *,
+       REPLACE(dep_name, 'Analytics', 'Mining') AS replace_string,
+       CONCAT('demo', SUBSTRING(dep_name FROM 4)) AS stuff_string,
+       SUBSTRING(dep_name FROM 2 FOR 3) AS substring_string,
+       REPLACE(REPLACE(dep_name, 'A', 'S'), 'R', 'T') AS translate_string
+FROM dept;
+
+SELECT dept_id,
+       dep_name,
+       REPLACE(dep_name, 'Analytics', 'Mining') AS replace_string,
+       CONCAT('demo', SUBSTRING(dep_name FROM 4)) AS stuff_string,
+       SUBSTRING(dep_name FROM 2 FOR 3) AS substring_string,
+       REPLACE(REPLACE(REPLACE(dep_name, 'A', 'S'), 'a', 's'), 'R', 'r') AS translate_string
+FROM dept;
+
+
+CREATE TABLE returns (
+    order_id INT PRIMARY KEY,
+    return_reason VARCHAR(100)
+);
+INSERT INTO returns (order_id, return_reason) VALUES
+(3, 'Wrong item received'),
+(6, 'Defective product'),
+(8, 'Item not as described');
+SELECT * FROM returns;
+
+SELECT * FROM Superstore_orders;
+
+UPDATE superstore_orders
+SET city = 'New York'
+WHERE order_id BETWEEN 1 AND 4;
+
+UPDATE superstore_orders
+SET city = 'London'
+WHERE order_id BETWEEN 5 AND 8;
+
+UPDATE superstore_orders
+SET city = 'Japan'
+WHERE order_id BETWEEN 9 AND 10;
+
+-- tampilkan jumlah returns dari negara yang mengalami return.
+select city,
+	   sum(sor.sales) 
+from Superstore_orders as sor 
+inner join returns ru on sor.order_ID=ru.Order_ID
+group by city;
+
+-- tampilkan orderr yang tidak mengalami returns
+select sor.order_id,
+	   ru.order_id,
+	   sor.sales 
+from Superstore_orders as sor 
+left join returns ru on sor.order_ID=ru.Order_ID
+where ru.Order_ID is null;
+
+-- tampilkan order yang mengalami returns
+select sor.order_id,
+	   ru.order_id,
+	   sor.sales
+from Superstore_orders as sor 
+right join returns ru on sor.order_ID=ru.Order_ID;
+
+-- UNSOLVED DOCUMENTATION
+SELECT COALESCE(sor.order_id, ru.order_id) AS order_id_final,
+       sor.sales AS sales
+FROM superstore_orders AS sor 
+CROSS JOIN returns ru
+WHERE sor.order_ID = ru.Order_ID;
+
+create table empl
+(
+	emp_id int,
+	emp_name Varchar(20),
+	department_id Varchar(20),
+	salary int,
+	manager_id int,
+	emp_age int
+);
+
+INSERT INTO empl values(1,'Ankit',100,10000,4,39);
+INSERT INTO empl values(2,'Mohit',100,15000,5,48);
+INSERT INTO empl values(3,'Vikas',100,10000,4,37);
+INSERT INTO empl values(4,'Rohit',100,5000,2,16);
+INSERT INTO empl values(5,'Mudit',200,12000,6,55);
+INSERT INTO empl values(6,'Agam',200,12000,2,14);
+INSERT INTO empl values(7,'Sanjay',200,9000,2,13);
+INSERT INTO empl values(8,'Ashish',200,5000,2,12);
+INSERT INTO empl values(9,'Mukesh',300,6000,6,51);
+INSERT INTO empl values(10,'Rakesh',300,7000,6,50);
+select * from empl;
+
+-- UNSOLVED DOCUMENTATION
+with value_S as (
+    select *,
+        row_number() over (order by emp_age asc) as rn_asc,
+        row_number() over (order by emp_age desc) as rn_desc
+    from empl
+--    where EMP_ID < 10
+)
+select avg(emp_age)
+from value_S
+where abs(rn_asc - rn_desc) <= 1;
+
+create table players
+(
+	player_id int,
+	group_id int
+);
+insert into players values (15,1);
+insert into players values (25,1);
+insert into players values (30,1);
+insert into players values (45,1);
+insert into players values (10,2);
+insert into players values (35,2);
+insert into players values (50,2);
+insert into players values (20,3);
+insert into players values (40,3);
+select * from players;
+
+create table matches
+(
+	match_id int,
+	first_player int,
+	second_player int,
+	first_score int,
+	second_score int
+);
+insert into matches values (1,15,45,3,0);
+insert into matches values (2,30,25,1,2);
+insert into matches values (3,30,15,2,0);
+insert into matches values (4,40,20,5,2);
+insert into matches values (5,35,50,1,1);
+select * from matches;
+
+-- identifikasi pemain dengan peringkat pertama di setiap grup 
+-- berdasarkan total skor mereka dalam pertandingan.
+with 
+player_score as 
+(
+	select first_player as player_id,first_score as score from matches
+	union  all
+	select second_player as player_id,second_score as score from matches
+),
+final_scores as 
+(
+	select p.group_id,
+		   ps.player_id,
+		   sum(score) as score 
+	from player_score ps 
+	inner join players p on p.player_id=ps.player_id
+	group by p.group_id,ps.player_id
+),
+final_ranking as
+(
+	select *,
+	rank() over(partition by group_id order by score desc, player_id asc) as rn
+	from final_scores
+)
+select * from final_ranking where rn=1;
