@@ -1337,59 +1337,188 @@ select avg(emp_age)
 from value_S
 where abs(rn_asc - rn_desc) <= 1;
 
-create table players
-(
-	player_id int,
-	group_id int
+create table tasks (
+	date_value date,
+	state varchar(10)
 );
-insert into players values (15,1);
-insert into players values (25,1);
-insert into players values (30,1);
-insert into players values (45,1);
-insert into players values (10,2);
-insert into players values (35,2);
-insert into players values (50,2);
-insert into players values (20,3);
-insert into players values (40,3);
-select * from players;
 
-create table matches
-(
-	match_id int,
-	first_player int,
-	second_player int,
-	first_score int,
-	second_score int
-);
-insert into matches values (1,15,45,3,0);
-insert into matches values (2,30,25,1,2);
-insert into matches values (3,30,15,2,0);
-insert into matches values (4,40,20,5,2);
-insert into matches values (5,35,50,1,1);
-select * from matches;
+insert into tasks  values 
+('2019-01-01','success'),
+('2019-01-02','success'),
+('2019-01-03','success'),
+('2019-01-04','fail'),
+('2019-01-05','fail'),
+('2019-01-06','success');
 
--- identifikasi pemain dengan peringkat pertama di setiap grup 
--- berdasarkan total skor mereka dalam pertandingan.
-with 
-player_score as 
+-- tampiilkan row number/urutan tasks sukses dan fail
+select *,
+	   row_number() over(partition by state order by date_value) as  rn
+from tasks
+order by date_value;
+
+-- KUERI POSTGRESQL
+-- Tampilkan waktu mulai dan akhir setiap state yang ada
+WITH all_dates AS 
 (
-	select first_player as player_id,first_score as score from matches
-	union  all
-	select second_player as player_id,second_score as score from matches
-),
-final_scores as 
-(
-	select p.group_id,
-		   ps.player_id,
-		   sum(score) as score 
-	from player_score ps 
-	inner join players p on p.player_id=ps.player_id
-	group by p.group_id,ps.player_id
-),
-final_ranking as
-(
-	select *,
-	rank() over(partition by group_id order by score desc, player_id asc) as rn
-	from final_scores
+    SELECT *,
+           ROW_NUMBER() OVER(PARTITION BY state ORDER BY date_value) AS rn
+    FROM tasks
 )
-select * from final_ranking where rn=1;
+SELECT state,
+       MIN(date_value) AS start_date,
+       MAX(date_value) AS end_date
+FROM (
+    SELECT *,
+           date_value - interval '1' day * (rn - 1) AS group_date
+    FROM all_dates
+) as subquery
+GROUP BY group_date, state
+ORDER BY start_date;
+
+-- KUERI SSMS
+-- with all_dates as 
+-- (
+-- 	select *,
+-- 		row_number() over(partition by state order by date_value) as  rn,
+-- 		dateadd(day,-1*row_number() over(partition by state order by date_value) as group_date)
+-- 	from tasks
+-- )
+-- select state,
+-- 	   min(date_value) as start_date,
+-- 	   max(date_value) as end_date,
+-- 	   state 
+-- from all_date 
+-- group by group_date,state
+-- order by start_date;
+
+-- KUERI MYSQL
+-- WITH all_dates AS (
+--     SELECT *,
+--            ROW_NUMBER() OVER(PARTITION BY state ORDER BY date_value) AS rn,
+--            DATE_SUB(date_value, INTERVAL (ROW_NUMBER() OVER(PARTITION BY state ORDER BY date_value) - 1) DAY) AS group_date
+--     FROM tasks
+-- )
+-- SELECT state,
+--        MIN(date_value) AS start_date,
+--        MAX(date_value) AS end_date
+-- FROM all_dates
+-- GROUP BY group_date, state
+-- ORDER BY start_date;
+
+create table activity (
+	player_id int,device_id int, 
+	event_date date, 
+	games_played  int 
+);
+
+insert into activity values 
+(1,2,'2016-03-01',5 ),
+(1,2,'2016-03-02',6 ),
+(2,3,'2017-06-25',1 ),
+(3,1,'2016-03-02',0 ),
+(3,4,'2018-07-03',5 );
+
+select * from activity;
+
+-- Tampilkan laporan pertama kali login untuk semua player
+select player_id, 
+	   min(event_date) as first_time_login 
+from activity 
+group by player_id;
+
+-- Tampilkan laporan device id yang dipakai login oleh player untuk pertama kalinya,
+-- untuk semua player.
+select * 
+from (select *,
+		     rank() over(partition by player_id order by event_date) as rn
+	  from activity
+) as a
+where rn=1;
+
+-- tampilkan laporan dari setiap player
+-- berapa kali game yang telah dimainkan oleh player
+-- setiap tanggal diperoleh total keseluruhan dari awal.
+select *,
+	   sum(games_played) over(partition by player_id order by event_date) as total_played
+from activity;
+
+-- cari kejadian di mana seorang pemain telah masuk kembali ke dalam permainan 
+-- tepat pada hari setelah hari pertama mereka masuk.
+WITH mindate AS (
+    SELECT player_id, MIN(event_date) AS first_date 
+    FROM activity 
+    GROUP BY player_id
+)
+SELECT a.*, md.first_date
+FROM activity a
+INNER JOIN mindate md ON a.player_id = md.player_id
+WHERE a.event_date - md.first_date = 1;
+
+-- KUERI MYSQL
+-- WITH mindate AS (
+--     SELECT player_id, MIN(event_date) AS first_date 
+--     FROM activity 
+--     GROUP BY player_id
+-- )
+-- SELECT a.*, md.first_date
+-- FROM activity a
+-- INNER JOIN mindate md ON a.player_id = md.player_id
+-- WHERE DATEDIFF(a.event_date, md.first_date) = 1;
+
+create table customern (
+	customer_id int,
+	customer_name varchar(10),
+	gender varchar(2),
+	dob date,
+	age int
+);
+
+alter table customern
+	drop column dob,
+	add column dob timestamp default current_timestamp;
+
+alter table customern
+	drop column dob,
+	add column dob int;
+
+truncate table customern;
+
+select * from customern;
+insert into customern (customer_id, customer_name, gender, dob, age) values 
+(1,'Rahul','M',current_date(),22),
+(2,'Shilpa','F',current_date(),18),
+(3,'Ramesh','M',current_date(),19),
+(4,'Katrina','F',current_date(),17),
+(5,'Alia','F',current_date(),30),
+(6,'All','M',null,null);
+
+insert into customern values (1,'Rahul','M',22);
+insert into customern values (2,'Shilpa','F',18);
+insert into customern values (3,'Ramesh','M',19);
+insert into customern values (4,'Katrina','F',17);
+insert into customern values (5,'Alia','F',30);
+insert into customern values (6,'All','M',null,null);
+
+-- Kueri untuk filterring data, yang berhubungan dengan null
+select * FROM  customern where null=null;
+select * FROM  customern where dob is null;
+select * FROM  customern where dob is not null;
+
+-- tampilkan semua data, jika data age null, tampilkan age(null age) 11
+select *, coalesce(age, 11)as "age(null age)" from customern;
+
+-- tampilkan semua data, jika data dob null, tampilkan col '2020-01-01'
+select *,coalesce(dob, '2020-01-01') as col from customern;
+
+-- gabungan dari kueri diatas
+select *,
+	   coalesce(age, 11)as "age(null age)",
+	   coalesce(dob, '2020-01-01') as col
+from customern;
+
+-- tampilkan jumlah data age yang terisi
+select count(age) from customern;
+
+-- tampilkan jumlah data age (termasuk data age yang null)
+select count(coalesce(age,0)) from customern;
+
