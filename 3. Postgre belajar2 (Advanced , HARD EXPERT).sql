@@ -1,6 +1,7 @@
 -- ADVANCED
 -- HARD/EXPERT
 
+-- Gunakan db belajar2.sql
 -- database belajar2
 
 Create table  Trips (
@@ -211,3 +212,95 @@ select u.user_id as seller_id,
 from usersp u 
 left join rnk_orders ro on ro.seller_id = u.user_id and rn = 2
 left join itemsp i on  i.item_id = ro.item_id;
+
+
+create table spending (
+	user_id int,
+	spend_date date,
+	platform varchar(10),
+	amount int
+);
+
+insert into spending values
+(1,'2019-07-01','mobile',100),
+(1,'2019-07-01','desktop',100),
+(2,'2019-07-01','mobile',100),
+(2,'2019-07-02','mobile',100),
+(3,'2019-07-01','desktop',100),
+(3,'2019-07-02','desktop',100);
+select * from spending;
+
+/* 
+-- Platform pembelian pengguna.
+-- - Tabel mencatat riwayat pengeluaran pengguna yang melakukan pembelian 
+-- dari situs belanja online yang memiliki desktop dan aplikasi seluler.
+-- - Tulis kueri SQL untuk menemukan jumlah total pengguna dan 
+-- jumlah total yang dibelanjakan hanya menggunakan seluler, hanya desktop
+-- dan seluler dan desktop secara bersamaan untuk setiap tanggal.
+*/
+WITH all_spend AS (
+    SELECT spend_date,
+           user_id,
+           MAX(platform) AS platform,
+           SUM(amount) AS amount
+    FROM spending
+    GROUP BY spend_date, user_id 
+    HAVING COUNT(DISTINCT platform) = 1
+    UNION ALL 
+    SELECT spend_date,
+           user_id,
+           'Both' AS platform,
+           SUM(amount) AS amount
+    FROM spending
+    GROUP BY spend_date, user_id 
+    HAVING COUNT(DISTINCT platform) = 2
+    UNION ALL
+    SELECT DISTINCT spend_date,
+                    NULL::INTEGER AS user_id, -- Change the data type to match user_id
+                    'Both' AS platform,
+                    0 AS amount
+    FROM spending
+)
+SELECT spend_date,
+       platform,
+       SUM(amount) AS total_amount,
+       COUNT(DISTINCT user_id) AS total_user
+FROM all_spend
+GROUP BY spend_date, platform
+ORDER BY spend_date, platform DESC;
+
+create table sales (
+	product_id int,
+	period_start date,
+	period_end date,
+	average_daily_sales int
+);
+insert into sales values
+(1,'2019-01-25','2019-02-28',100),
+(2,'2018-12-01','2020-01-01',10),
+(3,'2019-12-01','2020-01-31',1);
+select * from sales;
+
+-- Logika Rekursif pada PostgreSQL
+WITH RECURSIVE cte_numbers AS (
+    SELECT 1 AS num -- anchor query
+    UNION ALL 
+    SELECT num + 1 -- recursive query
+    FROM cte_numbers
+    WHERE num < 6 -- filter to stop the recursion
+)
+SELECT num 
+FROM cte_numbers;
+
+-- UNRESOLVED DOCUMENTATION
+WITH RECURSIVE r_cte AS (
+    SELECT MIN(period_start)::timestamp AS dates, MAX(period_end) AS max_date FROM sales
+    UNION ALL
+    SELECT dates + INTERVAL '1 day', max_date FROM r_cte
+    WHERE dates < max_date
+)
+SELECT product_id, EXTRACT(YEAR FROM dates) AS report_year, SUM(average_daily_sales) AS total_amount 
+FROM r_cte
+INNER JOIN sales ON dates BETWEEN period_start AND period_end
+GROUP BY product_id, EXTRACT(YEAR FROM dates)
+ORDER BY product_id, EXTRACT(YEAR FROM dates);
