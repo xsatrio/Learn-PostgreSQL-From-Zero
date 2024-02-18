@@ -1576,3 +1576,1436 @@ SELECT emp.*, dep.*
 FROM emp
 JOIN dep ON emp.dep_id = dep.dep_id;
 
+create table orderss (
+	order_id int,
+	customer_id int,
+	product_id int
+);
+insert into orderss VALUES 
+(1, 1, 1),
+(1, 1, 2),
+(1, 1, 3),
+(2, 2, 1),
+(2, 2, 2),
+(2, 2, 4),
+(3, 1, 5);
+
+create table products(
+	id int,
+	name varchar(10)
+);
+insert into products VALUES 
+(1, 'A'),
+(2, 'B'),
+(3, 'C'),
+(4, 'D'),
+(5, 'E');
+
+select * from products;
+select * from orderss;
+
+-- UNRESOLVED DOCUMENTATION
+select o1.order_id,
+	   o1.product_id as p1,
+	   o2.product_id as p2 
+from orderss o1
+inner join orderss o2 on o1.order_id = o2.order_id
+where o1.order_id = 1 and o1.product_id != o2.product_id and o1.product_id != o2.product_id ;
+
+-- select o1.product_id as p1,o2.product_id as p2 ,count(1) as purchase_frequency from orderss o1
+-- inner join orderss o2 on o1.order_id=o2.order_id
+-- where o1.product_id < o2.product_id 
+-- group by  o1.product_id ,o2.product_id ;
+-- 
+-- select pr1.name as p1,pr2.name as p2,count(1) as purchase_frequency from orderss o1
+-- inner join orderss o2 on o1.order_id=o2.order_id
+-- inner join products pr1 on pr1.id=o1.product_id
+-- inner join products pr2 on pr2.id=o2.product_id
+-- where o1.product_id < o2.product_id 
+-- group by  pr1.name ,pr2.name;
+
+-- hapus nol di depan dan di belakang angka pecahan (float) dalam kolom sales
+select * from superstore_orders;
+select sales,
+	   cast(sales as float) as Amount_trailed 
+from superstore_orders;
+
+
+CREATE TABLE employe (
+    id INT,
+    firstname VARCHAR(50),
+    lastname VARCHAR(50),
+    DepartmentName VARCHAR(50),
+    Salary DECIMAL(10, 2),
+    HireDate DATE
+);
+
+INSERT INTO employe (id, firstname, lastname, DepartmentName, Salary, HireDate) VALUES
+(1, 'John', 'Doe', 'HR', 50000.00, '2019-01-15'),
+(2, 'Jane', 'Smith', 'Finance', 60000.00, '2020-03-20'),
+(3, 'Michael', 'Johnson', 'IT', 55000.00, '2018-11-10'),
+(4, 'Emily', 'Williams', 'Marketing', 48000.00, '2019-09-05'),
+(5, 'Christopher', 'Brown', 'Operations', 52000.00, '2021-02-28');
+
+select * from employe;
+
+-- select *,
+-- 	   datediff(YEAR,HireDAate,'2020-12-31') from employe 
+-- WHERE datediff(YEAR,HireDate,'2020-12-31');
+
+-- Tampilkan karyawan yang telah bekerja selama minimal dua tahun perusahaan 
+-- pada tanggal tertentu, dalam hal ini tanggal 31 Desember 2020.
+SELECT *, 
+       EXTRACT(YEAR FROM AGE('2020-12-31', HireDate)) AS YearsWithCompany
+FROM employe 
+WHERE EXTRACT(YEAR FROM AGE('2020-12-31', HireDate)) >= 2;
+
+-- KUERI MYSQL
+SELECT *, 
+	   TIMESTAMPDIFF(YEAR, HireDate, '2020-12-31') AS YearsWithCompany
+FROM employe 
+WHERE TIMESTAMPDIFF(YEAR, HireDate, '2020-12-31') >= 2;
+
+
+-- Naikkan salary  karyawan yang telah bekerja selama minimal dua tahun perusahaan 
+-- pada tanggal tertentu, dalam hal ini tanggal 31 Desember 2020.
+SELECT *, 
+	   Salary * 1.15 AS incrementedSalary,
+       EXTRACT(YEAR FROM AGE('2020-12-31', HireDate)) AS YearsWithCompany
+FROM employe 
+WHERE EXTRACT(YEAR FROM AGE('2020-12-31', HireDate)) >= 2;
+
+-- KUERI MYSQL
+SELECT *,
+   	   Salary * 1.15 AS incrementedSalary, 
+       TIMESTAMPDIFF(YEAR, HireDate, '2020-12-31') AS yearsWithCompany
+FROM employe 
+WHERE TIMESTAMPDIFF(YEAR, HireDate, '2020-12-31') >= 2;
+
+CREATE TABLE saless (
+    category varchar(15),
+    "2015" int,
+    "2016" int,
+    "2017" int,
+    "2018" int,
+    "2019" int,
+    "2020" int
+);
+
+insert into saless values ('Hot Drinks',20000,15000,28000,12000,40000,10000);
+insert into saless values ('Cold Drinks',18000,36000,10000,12000,8000,2000);
+select * from saless;
+
+-- lakukan unpivot dengan menggunakan UNION ALL untuk menggabungkan hasil 
+-- dari setiap tahun ke dalam satu kolom Sales.
+
+SELECT Category, Year, Sales
+FROM (
+    SELECT Category, '2015' AS Year, "2015" AS Sales FROM saless
+    UNION ALL
+    SELECT Category, '2016' AS Year, "2016" AS Sales FROM saless
+    UNION ALL
+    SELECT Category, '2017' AS Year, "2017" AS Sales FROM saless
+    UNION ALL
+    SELECT Category, '2018' AS Year, "2018" AS Sales FROM saless
+    UNION ALL
+    SELECT Category, '2019' AS Year, "2019" AS Sales FROM saless
+    UNION ALL
+    SELECT Category, '2020' AS Year, "2020" AS Sales FROM saless
+) AS UNPIVT_SALES;
+
+create table pemp(
+	Name varchar(10),
+	Value varchar(10),
+	ID int
+);
+select * from pemp;
+insert into pemp values ('Name','Adam',1);
+insert into pemp values ('Gender','Male',1);
+insert into pemp values ('Salary','50000',1);
+insert into pemp values ('Name','Adam',2);
+insert into pemp values ('Gender','Male',2);
+insert into pemp values ('Salary','50000',2);
+select * from pemp;
+
+-- ubah bentuk data baris ke bentuk kolom 
+SELECT 
+    ID,
+    MAX(CASE WHEN Name = 'Name' THEN Value END) AS Name,
+    MAX(CASE WHEN Name = 'Gender' THEN Value END) AS Gender,
+    MAX(CASE WHEN Name = 'Salary' THEN Value END) AS Salary
+FROM pemp
+GROUP BY ID;
+
+create table Dpemp(
+	Name varchar(10),
+	Value varchar(10),
+	ID int
+);
+
+select * from Dpemp;
+insert into Dpemp values ('Name','Adam',1);
+insert into dpemp values ('Gender','Male',1);
+insert into dpemp values ('Salary','50000',1);
+insert into dpemp values ('Name','Mila',2);
+insert into dpemp values ('Gender','FeMale',2);
+insert into dpemp values ('Salary','50000',2);
+select * from Dpemp;
+
+-- tampilkan baris yang akan dijadikan kolom
+SELECT STRING_AGG(Name, ',') 
+FROM (
+    SELECT DISTINCT Name 
+    FROM Dpemp
+) AS dp;
+
+CREATE TABLE Empp(
+	FirstName varchar(50) NOT NULL,
+	LastName varchar(50) NOT NULL,
+	HireDate date NULL 
+);
+INSERT INTO Empp (FirstName,LastName,HireDate) VALUES ('Alice',	'Ciccu','2024-01-07');
+INSERT INTO Empp (FirstName,LastName,HireDate) VALUES ('Paula',	'Barreto de Mattos','2024-01-06');
+INSERT INTO Empp (FirstName,LastName,HireDate) VALUES ('Alejandro',	'McGuel','2023-12-06');
+INSERT INTO Empp (FirstName,LastName,HireDate) VALUES ('Kendall',	'Keil',	'2024-01-05');
+INSERT INTO Empp (FirstName,LastName,HireDate) VALUES ('Ivo',	'Salmre','2023-10-04');
+INSERT INTO Empp (FirstName,LastName,HireDate) VALUES ('Paul',	'Komosinski','2023-08-04');
+INSERT INTO Empp (FirstName,LastName,HireDate) VALUES ('Ashvini',	'Sharma','2023-07-04');
+INSERT INTO Empp (FirstName,LastName,HireDate) VALUES ('Zheng',	'Mu','2024-01-03');
+INSERT INTO Empp (FirstName,LastName,HireDate) VALUES ('Stuart',	'Munson','2021-11-02');
+INSERT INTO Empp (FirstName,LastName,HireDate) VALUES ('Greg',	'Alderson','2024-01-02');
+INSERT INTO Empp (FirstName,LastName,HireDate) VALUES ('David',	'Johnson','2023-01-02');
+select * from empp;
+-- truncate table empp;
+
+-- tampilkan empp yang di hire kurang dari  2 bulan
+SELECT * FROM Empp
+WHERE 
+    (EXTRACT(YEAR FROM CURRENT_DATE) - EXTRACT(YEAR FROM HireDate)) * 12 +
+    (EXTRACT(MONTH FROM CURRENT_DATE) - EXTRACT(MONTH FROM HireDate)) < 2;
+
+   -- tampilkan lama bekerja setiap empp dari awal di hire
+SELECT *,
+       (EXTRACT(YEAR FROM CURRENT_DATE) - EXTRACT(YEAR FROM HireDate)) * 12 +
+       (EXTRACT(MONTH FROM CURRENT_DATE) - EXTRACT(MONTH FROM HireDate)) AS months_since_hire
+FROM Empp
+order by months_since_hire DESC;
+
+-- tampilkan karyawan yang bekerja kurang dari 12 bulan sebagai junior
+SELECT *,
+    CASE 
+        WHEN (EXTRACT(YEAR FROM CURRENT_DATE) - EXTRACT(YEAR FROM HireDate)) * 12 +
+             (EXTRACT(MONTH FROM CURRENT_DATE) - EXTRACT(MONTH FROM HireDate)) < 12
+        THEN 'Junior' 
+        ELSE 'Senior' 
+    END AS hired_last_2_month
+FROM Empp
+order by hired_last_2_month DESC;
+
+-- buat huruf pertama dari firstname menjadi huruf kecil
+Select Lower(LEFT(FirstName, 1))
+from Empp;
+
+-- buat huruf pertama dari firstname menjadi huruf kecil
+-- dan tampilkan nama lengkapnya setelah menjadi huruf kecil
+SELECT FirstName, 
+       LOWER(LEFT(FirstName, 1)) || SUBSTRING(FirstName, 2, LENGTH(FirstName)) || 
+       ' ' || lastname as Name 
+FROM Empp;
+
+create table dimEmp (
+	first_name varchar(15),
+	last_name varchar(15),
+	Birth_Date date
+);
+select * from dimEmp;
+insert into dimEmp values ('Gey','Gilbent','1981-11-12');
+insert into dimEmp values ('kevin','brown','1960-02-29');
+insert into dimEmp values ('Roberto','Tombunelo','1961-03-01');
+insert into dimEmp values ('Gey','Gilbent','1971-07-23');
+insert into dimEmp values ('Rob','Walters','1974-07-23');
+insert into dimEmp values ('Rob','Walters','1974-07-23');
+insert into dimEmp values ('therry','deheris','1961-02-26');
+insert into dimEmp values ('David','Bradley','1974-10-17');
+insert into dimEmp values ('David','Bradley','1974-10-17');
+insert into dimEmp values ('jolyn','dobley','1961-02-16');
+insert into dimEmp values ('ruth','book','1961-02-28');
+
+-- tampilkan tahun lahir yang baru, dengan interval 60 tahun
+SELECT 
+    first_name, 
+    last_name, 
+    Birth_Date, 
+    Birth_Date + INTERVAL '60 year' AS New_Birth_Date
+FROM 
+    dimEmp
+WHERE 
+    Birth_Date + INTERVAL '60 year' <= (SELECT DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month' - INTERVAL '1 day');
+
+   
+create table survey (
+	surveyid int,
+	response varchar(150)
+);
+-- DROP TABLE survey;
+select * from survey;
+insert into survey values (1,'ZZZZZXXXXCCCVVVBBNNMMLLKHJFGDFSDASASSAAQWEWERETRTYRYIYYIOIPUT');
+insert into survey values (2,'QWPDHBCNFDHFFGALSDDCS');
+truncate survey;
+
+-- mengganti semua kemunculan karakter 'Y' dengan string kosong, 
+-- dan menghitung panjang (length) dari string hasil penggantian.
+SELECT surveyid,
+	   response,
+	   length(response), 
+	   replace(response,'Y',''), 
+	   length(replace(response,'Y',''))
+ from survey;
+ 
+-- Mengambil surveyid, response, dan menghitung berapa kali karakter 'Y' 
+-- muncul dalam setiap baris kolom response.
+SELECT surveyid,
+	   response,
+	   length(response) - length(replace(response,'Y','')) as stringoccured
+ from survey;
+ 
+CREATE TABLE superstore_orderss (
+    Order_ID int,
+    Customer_Name varchar(100),
+    Product_Name varchar(100)
+);
+INSERT INTO superstore_orderss (Order_ID, Customer_Name, Product_Name) VALUES
+(1, 'Alice Smith', 'Office Chair'),
+(2, 'Bob Johnson', 'Desk Lamp'),
+(3, 'Charlie Brown', 'Bookshelf'),
+(4, 'David Anderson', 'Computer Desk'),
+(5, 'Eva Garcia', 'Printer'),
+(6, 'Adam Lee', 'Desk Organizer'),
+(7, 'Catherine White', 'Paper Shredder'),
+(8, 'Diana Martin', 'Scanner'),
+(9, 'Alex Thompson', 'Coffee Table'),
+(10, 'Carl Davis', 'Filing Cabinet'),
+(11, 'Emily Wilson', 'Desk Chair'),
+(12, 'Brian Taylor', 'Bookcase'),
+(13, 'Emma Harris', 'Desk Mat'),
+(14, 'Olivia Clark', 'File Cabinet'),
+(15, 'Frank Rodriguez', 'Stapler');
+select * from superstore_orderss;
+
+-- start with A
+select Customer_Name from superstore_orderss
+where Customer_Name like 'A%';
+-- end with A
+select Customer_Name from superstore_orderss
+where Customer_Name like '%A';
+
+select ORDER_ID from superstore_orderss;
+
+-- Kapitalkan semua huruf pada firstname.
+SELECT UPPER(FirstName) AS uper_first, FirstName
+FROM Empp;
+
+select COUNT(*) from Empp;
+select COUNT(1) from Empp;
+select COUNT(lastname) from Empp;
+
+select category,
+	   max(saless)
+from (values([2015]),([2016]),([2017]),([2018]),([2019]),([2020]) as salestable(sales) ) as maxSales
+ from saless;
+
+select * from saless;
+
+-- cari harga termahal dari setiap produk pada saless
+SELECT category,
+       GREATEST("2015", "2016", "2017", "2018", "2019", "2020") AS max_sales
+FROM saless;
+
+-- No sales for n consecutive days | Identify date gaps
+select order_date from superstore_orders
+order by order_date;
+
+-- Tampilkan tanggal pesanan (order_date) dan 
+-- tanggal pesanan berikutnya (Lead_date) dalam tabel superstore_orders. 
+select order_date,
+	   lead(order_date) over(order by order_date) as Lead_date
+from superstore_orders
+order by order_date;
+
+-- Tampilkan gap/selisih hari tanggal pesanan berikutnya 
+-- dalam tabel superstore_orders. 
+SELECT 
+    order_date,
+    EXTRACT(DAY FROM LEAD(order_date) OVER (ORDER BY order_date)) - EXTRACT(DAY FROM order_date) AS Gap
+FROM superstore_orders
+ORDER BY order_date;
+
+-- tampilkan order yang memiliki gap/selisih 1 hari
+SELECT * FROM (
+    SELECT 
+        order_date,
+        EXTRACT(DAY FROM LEAD(order_date) OVER (ORDER BY order_date)) - EXTRACT(DAY FROM order_date) AS gap
+    FROM superstore_orders
+) AS NoSales
+WHERE NoSales.gap > 0;
+
+-- Hari pertama minggu ini
+SELECT date_trunc('week', CURRENT_DATE) AS first_day_of_week;
+
+-- Hari terakhir minggu ini
+SELECT date_trunc('week', CURRENT_DATE) + INTERVAL '6 days' AS last_day_of_week;
+
+
+-- Subquery untuk mendapatkan dua gaji tertinggi untuk setiap departemen
+WITH top_salaries AS (
+    SELECT emp_name, department_id, salary,
+           RANK() OVER (PARTITION BY department_id ORDER BY salary DESC) AS maxsal
+    FROM empm
+)
+-- Menggabungkan dua gaji tertinggi dengan 'others' untuk sisa gaji
+SELECT emp_name, department_id, salary
+FROM (
+    SELECT emp_name, department_id, salary, maxsal
+    FROM top_salaries
+    WHERE maxsal <= 2 -- Top 2 gaji tertinggi
+    UNION ALL
+    SELECT 'others' AS emp_name, department_id, SUM(salary) AS salary, 3 AS maxsal -- Jika lebih dari 2 gaji tertinggi
+    FROM top_salaries
+    WHERE maxsal > 2
+    GROUP BY department_id
+) AS final_result
+ORDER BY department_id, maxsal;
+
+select order_date,sales
+from superstore_orders;
+
+-- Total penjualan setiap bulan dari tahun-tahun yang berbeda, LAG: membawa data dari baris sebelumnya
+-- Untuk membandingkan data bulan per bulan, bandingkan data bulan tersebut dengan data bulan sebelumnya
+SELECT
+    EXTRACT(YEAR FROM order_date) AS "Year",
+    EXTRACT(MONTH FROM order_date) AS "Month",
+    SUM(sales),
+    LAG(SUM(sales)) OVER(ORDER BY EXTRACT(YEAR FROM order_date), EXTRACT(MONTH FROM order_date))
+FROM superstore_orders
+WHERE EXTRACT(YEAR FROM order_date) IN (2021, 2022)
+GROUP BY EXTRACT(YEAR FROM order_date), EXTRACT(MONTH FROM order_date);
+
+select * from entries;
+-- Ekstrak domain dari alamat email dengan menggunakan POSITION untuk mendapatkan posisi '@'
+SELECT POSITION('@' IN email) AS at_position, email FROM entries;
+
+-- Ekstrak string setelah '@' dengan menggunakan fungsi SUBSTRING
+SELECT SUBSTRING(email FROM POSITION('@' IN email) + 1) AS domain FROM entries;
+
+-- Menemukan jumlah email dari domain yang sama dengan mengelompokkan berdasarkan domain
+SELECT COUNT(*), SUBSTRING(email FROM POSITION('@' IN email) + 1) AS domain
+FROM entries
+GROUP BY SUBSTRING(email FROM POSITION('@' IN email) + 1);
+
+
+-- How to find all levels of Employee Manager Hierarchy | Recursion
+-- manager id is null then he is the top most manager in orgz
+create table emmp(
+	emp_id int,
+	emp_name varchar(20),
+	department_id int,
+	manager_id int
+);
+select * from emmp;
+insert into emmp values(1,'Adam Owens',103,3);
+insert into emmp values(2,'Smith Jones',102,5);
+insert into emmp values(3,'Hilary Riles',101,4);
+insert into emmp values(4,'Richard Robinson',103,3);
+insert into emmp values(5,'Samuel Pitt',103,3);
+insert into emmp values(6,'Mark Miles',null,7);
+insert into emmp values(7,'Jenny Jeff',999,null);
+select * from emmp;
+
+-- Menggunakan INNER JOIN untuk menggabungkan tabel karyawan dengan tabel manajer
+SELECT emp.emp_name AS EmployeeName, mgr.emp_name AS ManagerName
+FROM emmp emp
+INNER JOIN emmp mgr ON emp.manager_id = mgr.emp_id;
+
+-- Menggunakan window function untuk menghitung total berjalan atau jumlah kumulatif
+SELECT *, 
+       SUM(salary) OVER (ORDER BY emp_id) AS RunningTotal
+FROM empm;
+
+-- Menggunakan TRANSLATE
+SELECT TRANSLATE('xxx1234567891zzz', '123456789', 'abcdefghi');
+
+-- Menggunakan REPLACE
+SELECT REPLACE('1234567891', '123456789', 'abcdefghi');
+
+-- Jika kita ingin mengganti seluruh string dengan satu karakter
+SELECT REPLACE('1234567891', '123456789', 'a');
+
+-- Hitung total YTD (Year-To-Date)
+SELECT order_id,
+       order_date,
+       sales AS total_due,
+       SUM(sales) OVER (PARTITION BY EXTRACT(YEAR FROM order_date) ORDER BY order_id) AS YTD
+FROM superstore_orders
+ORDER BY order_id;
+
+-- Hitung total MTD (Month-To-Date)
+SELECT order_id,
+       order_date,
+       sales AS total_due,
+       SUM(sales) OVER (PARTITION BY EXTRACT(YEAR FROM order_date), EXTRACT(MONTH FROM order_date) ORDER BY order_id) AS MTD
+FROM superstore_orders
+ORDER BY order_id;
+
+-- MTD untuk 3 baris akhir
+SELECT order_id,
+       order_date,
+       sales AS total_due,
+       SUM(sales) OVER (PARTITION BY EXTRACT(YEAR FROM order_date), EXTRACT(MONTH FROM order_date) ORDER BY order_id ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS MTD_3
+FROM superstore_orders
+ORDER BY order_id;
+
+-- kueri untuk menghitung nilai order pertama dan terakhir
+SELECT 
+    order_id,
+    order_date,
+    sales AS Total_due,
+    FIRST_VALUE(order_id) OVER (PARTITION BY EXTRACT(YEAR FROM order_date) ORDER BY order_id, order_date) AS first_order,
+    FIRST_VALUE(order_id) OVER (PARTITION BY EXTRACT(YEAR FROM order_date) ORDER BY order_id, order_date ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS first_order_frm,
+    LAST_VALUE(order_id) OVER (PARTITION BY EXTRACT(YEAR FROM order_date) ORDER BY order_id, order_date) AS last_order,
+    LAST_VALUE(order_id) OVER (PARTITION BY EXTRACT(YEAR FROM order_date) ORDER BY order_id, order_date ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING) AS last_order_frm
+FROM 
+    superstore_orders;
+
+-- Temukan pegawai dengan gaji lebih tinggi dari rata-rata departemen dan kurang dari rata-rata perusahaan
+SELECT emp_id, emp_name, e.department_id, salary
+FROM emp e
+INNER JOIN (
+    SELECT department_id, AVG(salary) AS avg_salary
+    FROM emp
+    GROUP BY department_id
+) AS avg_emp_sal 
+ON e.department_id = avg_emp_sal.department_id AND e.salary > avg_emp_sal.avg_salary;
+
+
+select * from empm;
+
+-- Tampilkan gaji karyawan beserta tiap manager karyawan
+SELECT e.emp_name AS "employee name",
+	   e.salary as "employee salary",
+	   m.emp_name AS "manager name",
+	   m.salary as "manager salary"
+FROM empm e
+LEFT JOIN empm m ON e.manager_id = m.emp_id ;
+
+-- Tampilkan karyawan yang memilki gaji lebih besar dari managernya
+select emp_id,emp_name,department_id,salary from empm e
+where salary > (
+	select salary from empm 
+	where emp_id = e.manager_id
+);
+
+select * from emp;
+
+-- contains only alphanumeric values
+SELECT emp_name  FROM emp
+WHERE emp_name IS NOT NULL AND emp_name ~ '^[a-zA-Z0-9]*$';
+
+-- contains only alphanumeric values or spaces
+SELECT DISTINCT emp_name FROM emp
+WHERE emp_name IS NOT NULL AND emp_name ~ '^[a-zA-Z0-9 ]*$';
+
+-- contains only alphanumeric values, spaces, hyphens, and forward slashes
+SELECT DISTINCT emp_name FROM emp
+WHERE emp_name IS NOT NULL AND emp_name ~ '^[a-zA-Z0-9/ -]*$';
+
+-- contains only non-alphanumeric values
+SELECT DISTINCT emp_name FROM emp
+WHERE emp_name IS NOT NULL AND emp_name ~ '[^a-zA-Z0-9]';
+
+-- contains spaces
+SELECT DISTINCT emp_name FROM emp
+WHERE emp_name IS NOT NULL AND emp_name ~ '[[:space:]]';
+
+-- contains hyphens
+SELECT DISTINCT emp_name FROM emp
+WHERE emp_name IS NOT NULL AND emp_name ~ '-';
+
+-- contains forward slashes
+SELECT DISTINCT emp_name FROM emp
+WHERE emp_name IS NOT NULL AND emp_name ~ '/';
+
+create table transaction (
+	order_id int,
+	order_date date,
+	product_name varchar(6),
+	order_amount int,
+	create_time timestamp default current_timestamp
+); 
+drop table transaction;
+select * from transaction;
+insert into transaction values(1,'2022-03-03','P1',150);
+insert into transaction values(2,'2022-03-03','P2',200);
+insert into transaction values(2,'2022-03-03','P2',200);
+insert into transaction values(3,'2022-03-03','P3',300);
+select * from transaction;
+
+-- How to Delete Duplicates in PRODUCTION ENVIRONTMENT
+-- Step 1: Backup original table
+CREATE TABLE transaction_table_backup AS
+SELECT * FROM transaction;
+
+-- Step 2: Delete duplicates using DELETE
+-- Identify duplicates
+SELECT order_id, MIN(create_time) AS no_of_records
+FROM transaction 
+GROUP BY order_id 
+HAVING COUNT(*) > 1;
+
+-- Delete duplicates
+DELETE FROM transaction 
+WHERE (order_id, create_time) IN 
+(SELECT order_id, MIN(create_time)
+FROM transaction 
+GROUP BY order_id 
+HAVING COUNT(*) > 1);
+
+-- Step 3: Using ROW_NUMBER to identify duplicates
+SELECT *,
+       ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY create_time DESC) AS rn
+FROM transaction;
+
+-- Step 4: Insert into original table from backup
+INSERT INTO transaction
+SELECT order_id, order_date, product_name, order_amount, create_time 
+FROM (
+    SELECT *,
+           ROW_NUMBER() OVER (PARTITION BY order_id ORDER BY create_time DESC) AS rn
+    FROM transaction
+) AS a
+WHERE rn = 1;
+
+-- Step 5: Delete pure duplicates
+-- Take backup
+CREATE TABLE transaction_backup AS
+SELECT DISTINCT * FROM transaction;
+
+-- Insert distinct records into original table
+TRUNCATE TABLE transaction;
+INSERT INTO transaction
+SELECT * FROM transaction_backup;
+
+-- create table userss (
+-- 	user_id integer,
+-- 	name varchar(20),
+-- 	join_date date
+-- );
+-- insert into userss values 
+-- (1, 'Jon','2020-02-14'), 
+-- (2, 'Jane', '2020-02-14'), 
+-- (3, 'Jill','2020-02-15' ), 
+-- (4, 'Josh','2020-02-15'), 
+-- (5, 'Jean','2020-02-16'), 
+-- (6, 'Justin','2020-02-17'),
+-- (7, 'Jeremy', '2020-02-18');
+-- select * from userss;
+-- -- delete from userss;
+-- create table events(
+-- 	user_id integer,
+-- 	type varchar(10),
+-- 	access_date date
+-- );
+-- insert into events values 
+-- (1, 'Pay', '2020-03-01'), 
+-- (2, 'Music', '2020-03-02'), 
+-- (2, 'P', '2020-03-12'),
+-- (3, 'Music', '2020-03-15'), 
+-- (4, 'Music','2020-03-15'), 
+-- (1, 'P', '2020-03-16'), 
+-- (3, 'P', '2020-03-22');
+-- select * from  userss;
+-- select * from  events;
+
+-- temukan siapa yang mengakses amazon music
+select * from userss
+where user_id in (select user_id from events where type='Music');
+
+--CREATE TABLE t1(id1 int );
+--CREATE TABLE t2(id2 int );
+--
+--drop table t1,t2;
+
+--create table transactionss(
+--	order_id int,
+--	cust_id int,
+--	order_date date,
+--	amount int
+--);
+
+--insert into transactionss values 
+--(1,1,'2020-01-15',150),
+--(2,1,'2020-02-10',150 ,
+--(3,2,'2020-01-16',150),
+--(4,2,'2020-02-25',150),
+--(5,3,'2020-01-10',150),
+--(6,3,'2020-02-20',150),
+--(7,4,'2020-01-20',150),
+--(8,5,'2020-02-20',150);
+--select * from transactionss;
+
+CREATE TABLE mode (
+    id INT
+);
+insert into mode values (1),(2),(2),(3),(3),(3),(3),(4),(5);
+insert into mode values (4);
+select * from mode;
+
+-- tampilkan nilai atau nilai-nilai yang paling sering muncul 
+-- dalam kumpulan data dari tabel mode.
+with freq_cte as
+(
+	select id,
+		   count(*) as freq 
+	from mode 
+	group by id 
+)
+select * from freq_cte 
+where freq = (select max(freq) from freq_cte);
+
+-- tampilkan nilai atau nilai-nilai yang paling sering muncul 
+-- dalam kumpulan data dari tabel mode.
+-- pakai rank.
+with freq_cte as 
+(
+	select id,
+		   count(*) as freq 
+	from mode 
+	group by id 
+),
+rnk_cte as
+(
+	select  *,
+		    RANK() OVER(order by freq desc) as rn -- max freq will be give rank 1
+	from freq_cte
+)
+select * from rnk_cte where rn=1;
+
+create table UserActivity
+(
+	username varchar(20),
+	activity varchar(20),
+	startDate Date,
+	endDate Date
+);
+insert into UserActivity values 
+('Alice','Travel','2020-02-12','2020-02-20'),
+('Alice','Dancing','2020-02-21','2020-02-23'),
+('Alice','Travel','2020-02-24','2020-02-28'),
+('Bob','Travel','2020-02-11','2020-02-18');
+
+-- - Kolom total_activities: Menunjukkan jumlah total aktivitas yang dilakukan 
+--   oleh setiap pengguna.
+-- - Kolom rnk: Menunjukkan peringkat aktivitas berdasarkan tanggal mulai 
+--   secara descending (terbalik), yang berguna untuk menentukan urutan 
+--   aktivitas terbaru.
+select *,
+	   COUNT(1) over(partition by username) as total_activities,
+	   rank() over(partition by username order by startdate desc) as rnk
+from UserActivity;
+
+with cte as 
+(
+	select *,
+		   COUNT(1) over(partition by username) as total_activities,
+		   rank() over(partition by username order by startdate desc) as rnk
+	from UserActivity
+)
+select * from cte where total_activities=1 or rnk=2;
+
+create table emp_2020(
+	emp_id int,
+	designation varchar(20)
+);
+create table emp_2021(
+	emp_id int,
+	designation varchar(20)
+);
+
+insert into emp_2020 values 
+(1,'Trainee'),
+(2,'Developer'),
+(3,'Senior Developer'),
+(4,'Manager');
+insert into emp_2021 values 
+(1,'Developer'),
+(2,'Developer'),
+(3,'Manager'),
+(5,'Trainee');
+select * from emp_2021;
+select * from emp_2020;
+--truncate table emp_2020;
+--truncate table emp_2021;
+
+-- lihat perubahan dari jabatan,
+-- semua emp_id
+select e20.*,
+	   e21.* 
+from emp_2020 e20 
+full outer join emp_2021 e21 on e21.emp_id = e20.emp_id;
+
+-- UNRESOLVED DOCUMENTATION
+select e20.* ,
+	   e21.* 
+from emp_2020 e20 
+full outer join emp_2021 e21 on e21.emp_id = e20.emp_id
+where e20.designation != e21.designation;
+
+-- gabungkan dua tabel emp_2020 dan emp_2021 menggunakan full outer join 
+-- berdasarkan emp_id.
+-- filter baris-baris di mana kolom designation dari kedua tahun berbeda.
+SELECT e20.*, e21.*
+FROM emp_2020 e20 
+FULL OUTER JOIN emp_2021 e21 ON e21.emp_id = e20.emp_id
+WHERE COALESCE(e20.designation, 'xxx') != COALESCE(e21.designation, 'yyy');
+
+
+-- buatkan indikator untuk semua emp_id
+-- tetap, promoted, resigned, dan new.
+select e20.emp_id as before,
+	   e21.emp_id as after,
+	   case 
+		   when e20.designation = e21.designation then 'Tetap'
+		   when e20.designation != e21.designation then 'Promoted'
+		   when e21.designation is null then 'Resigned'
+		   else 'New' 
+	   end as comment 
+from emp_2020 e20 
+full outer join emp_2021 e21 on e21.emp_id = e20.emp_id;
+where coalesce(e20.designation,'xxx') != coalesce(e21.designation,'yyy');
+
+-- daftar karyawan beserta status mereka, dipromosikan, 
+-- mengundurkan diri, atau baru.
+select coalesce(e20.emp_id ,e21.emp_id) as emp_id, -- if e20 is null put e21 value
+	   case 
+		   when e20.designation!=e21.designation then 'Promoted'
+		   when e21.designation is null then 'Resigned'
+		   else 'New' 
+	   end as comment 
+from emp_2020 e20 
+full outer join emp_2021 e21 on e21.emp_id = e20.emp_id
+where coalesce(e20.designation,'xxx') != coalesce(e21.designation,'yyy');
+
+create table list (id varchar(5));
+insert into list values ('a');
+insert into list values ('a');
+insert into list values ('b');
+insert into list values ('c');
+insert into list values ('c');
+insert into list values ('c');
+insert into list values ('d');
+insert into list values ('d');
+insert into list values ('e');
+
+-- tandai duplikat dalam tabel list
+WITH cte_dupl AS 
+(
+    SELECT id 
+    FROM list 
+    GROUP BY id 
+    HAVING COUNT(1) > 1
+),
+cte_rank AS 
+(
+    SELECT *, 
+           RANK() OVER(ORDER BY id ASC) AS rn 
+    FROM cte_dupl
+)
+SELECT l.*, 
+       'DUP' || CAST(cr.rn AS VARCHAR(2)) AS output  
+FROM list l
+LEFT JOIN cte_rank cr ON l.id = cr.id;
+
+
+CREATE table activityy(
+	user_id char(20),
+	event_name char(20),
+	event_date date,
+	country char(20)
+);
+insert into activityy values 
+(1,'app-installed','2022-01-01','India')
+,(1,'app-purchase','2022-01-02','India')
+,(2,'app-installed','2022-01-01','USA')
+,(3,'app-installed','2022-01-01','USA')
+,(3,'app-purchase','2022-01-03','USA')
+,(4,'app-installed','2022-01-03','India')
+,(4,'app-purchase','2022-01-03','India')
+,(5,'app-installed','2022-01-03','SL')
+,(5,'app-purchase','2022-01-03','SL')
+,(6,'app-installed','2022-01-04','Pakistan')
+,(6,'app-purchase','2022-01-04','Pakistan');
+select * from activityy;
+
+-- tampilkan jumlah user active harian
+select event_date,
+	   count(distinct user_id) from activityy a 
+group by event_date;
+
+-- hitung jumlah pengguna yang melakukan pembelian pada 
+-- hari yang sama dengan instalasi aplikasi mereka.
+select user_id,event_date,
+	   count(distinct event_name) as no_of_events 
+from activityy 
+group by user_id,event_date 
+having (count(distinct event_name)) = 2;
+
+-- tampilkan jumlah pembelian di India dan USA
+SELECT CASE 
+	   	  WHEN country IN ('India', 'USA') THEN country 
+	   	  ELSE 'Others' 
+	   END AS new_country,
+       COUNT(DISTINCT user_id) as user_cnt 
+FROM activityy
+WHERE event_name = 'app-purchase'
+GROUP BY 
+CASE 
+	WHEN country IN ('India', 'USA') THEN country 
+	ELSE 'Others'
+END;
+
+-- tampilkan persentase user dari India dan USA
+with country_wise_users as 
+(
+	SELECT CASE 
+		   	  WHEN country IN ('India', 'USA') THEN country 
+		   	  ELSE 'Others' 
+		   END AS new_country,
+	       COUNT(DISTINCT user_id) as user_cnt 
+	FROM activityy
+	WHERE event_name = 'app-purchase'
+	GROUP BY 
+	CASE 
+		WHEN country IN ('India', 'USA') THEN country 
+		ELSE 'Others'
+	END
+),
+total as 
+(
+	select sum(user_cnt) as total_users 
+	from country_wise_users 
+)
+select new_country,
+	   user_cnt*1.0/total_users*100 as percent_users
+from country_wise_users,
+	 total;
+
+-- tampilkan aktivitas sebelumnya, 1 baris setelahnya.
+select *,
+	   lag(event_name,1) over(partition by user_id order by event_date) as prev_event_name,
+	   lag(event_date,1) over(partition by user_id order by event_date) as prev_event_date
+from activityy;
+
+-- hitung jumlah pengguna yang melakukan pembelian aplikasi 
+-- pada tanggal yang sama dengan instalasi aplikasi sebelumnya.
+WITH prev_data AS (
+    SELECT *,
+           LAG(event_name, 1) OVER (PARTITION BY user_id ORDER BY event_date) AS prev_event_name,
+           LAG(event_date, 1) OVER (PARTITION BY user_id ORDER BY event_date) AS prev_event_date
+    FROM activityy
+)
+SELECT event_date,
+       COUNT(DISTINCT user_id) AS cnt_users
+FROM prev_data
+WHERE event_name = 'app-purchase'
+  AND prev_event_name = 'app-installed'
+  AND (EXTRACT(DAY FROM event_date) - EXTRACT(DAY FROM prev_event_date)) = 1
+GROUP BY event_date;
+
+CREATE TABLE Employeess
+  (EmployeeID smallint NOT NULL,
+  Name varchar(50) NOT NULL,
+  DeptID int NULL,
+  Salary integer NULL
+ );
+
+INSERT INTO Employeess(EmployeeID,Name,DeptID,Salary) VALUES(1,'Mia',5,50000);
+  INSERT INTO Employeess(EmployeeID,Name,DeptID,Salary) VALUES(2,'Adam',2,50000);
+  INSERT INTO Employeess(EmployeeID,Name,DeptID,Salary) VALUES(3,'Sean',5,60000);
+  INSERT INTO Employeess(EmployeeID,Name,DeptID,Salary) VALUES(4,'Robert',2,50000);
+  INSERT INTO Employeess(EmployeeID,Name,DeptID,Salary) VALUES(5,'Jack',2,45000);
+  INSERT INTO Employeess(EmployeeID,Name,DeptID,Salary) VALUES(6,'Neo',5,60000);
+  INSERT INTO Employeess(EmployeeID,Name,DeptID,Salary) VALUES(7,'Jennifer',2,55000);
+  INSERT INTO Employeess(EmployeeID,Name,DeptID,Salary) VALUES(8,'Lisa',2,85000);
+  INSERT INTO Employeess(EmployeeID,Name,DeptID,Salary) VALUES(9,'Martin',2,35000);
+  INSERT INTO Employeess(EmployeeID,Name,DeptID,Salary) VALUES(10,'Terry',5,90000);
+  INSERT INTO Employeess(EmployeeID,Name,DeptID,Salary) VALUES(12,'David',5,60000);
+  
+-- RowNumber, Rank and Dense_Rank
+Select EmployeeID,
+	   Name, 
+	   DeptID, 
+	   Salary ,
+  	   Row_Number() OVER (PARTITION BY DEPTID ORDER BY SALARY) AS RoowNumber,
+  	   RANK() OVER (PARTITION BY DEPTID ORDER BY SALARY) AS RANK2,
+  	   DENSE_RANK() OVER (PARTITION BY DEPTID ORDER BY SALARY) AS densee_RANK
+FROM EMPLOYEEss;
+
+-- RANK
+-- setelah ada dua nilai yang sama dengan peringkat 1, peringkat berikutnya akan menjadi peringkat 3 (melewatkan peringkat 2).
+-- DENSE RANK
+-- setelah ada dua nilai yang sama dengan peringkat 1, peringkat berikutnya akan menjadi peringkat 2 (tanpa melewatkan peringkat).
+Select EmployeeID, 
+	   Name, 
+	   DeptID, 
+	   Salary ,
+	   Row_Number() OVER (PARTITION BY DEPTID ORDER BY SALARY) AS RoowNumber,
+	   RANK() OVER (PARTITION BY DEPTID ORDER BY SALARY,EmployeeID) AS RANK2,
+	   DENSE_RANK() OVER (PARTITION BY DEPTID ORDER BY SALARY,EmployeeID) AS densee_RANK
+ FROM EMPLOYEEss;
+ 
+create table countries (countryname varchar(20));
+truncate table countries;
+insert into countries values('NewZealand'),('Australia'),('England'),('NewZealand');
+select * from countries;
+
+-- UNRESOLVED DOCUMENTATION
+select * from countries a 
+inner join Countries b on a.countryname < b.countryname;
+
+
+CREATE TABLE STORES (
+	Store varchar(10),
+	Quarter varchar(10),
+	Amount int
+);
+INSERT INTO STORES (Store, Quarter, Amount)
+VALUES 
+('S1', 'Q1', 200),
+('S1', 'Q2', 300),
+('S1', 'Q4', 400),
+('S2', 'Q1', 500),
+('S2', 'Q3', 600),
+('S2', 'Q4', 700),
+('S3', 'Q1', 800),
+('S3', 'Q2', 750),
+('S3', 'Q3', 900);
+select * from STORES;
+
+-- cari quarter yang hilang pada setiap store
+SELECT store, 
+	   10 - SUM(CAST(RIGHT(quarter, 1) AS INTEGER)) AS q_no 
+FROM STORES
+GROUP BY store;
+
+-- cari quarter yang hilang pada setiap store
+select store,
+	   'Q' || cast(10-sum(cast(right(quarter,1) as int)) as char(2)) as q_no from STORES
+group by store;
+
+-- cari quarter yang hilang pada setiap store (Rekursif)
+WITH recursive ctq as
+(
+	select distinct store, 1 as q_no from stores
+	union all
+	select store, q_no+1 as q_no from ctq 
+	where q_no < 4
+), 
+q as 
+(
+	select  store,'Q' || cast(q_no  as char(1)) as q_no from ctq
+)
+select  q.* from q 
+left join stores s on q.store = s.store and q.q_no = s.quarter
+where s.store is null;
+
+-- cari quarter yang hilang pada setiap store (Cross Join)
+WITH ctq AS (
+    SELECT DISTINCT s1.store, s2.quarter
+    FROM stores s1, stores s2
+)
+SELECT q.*
+FROM ctq q
+LEFT JOIN stores s ON q.store = s.store AND q.quarter = s.quarter
+WHERE s.store IS NULL;
+
+-- Mendefinisikan variabel dan menginisialisasinya dengan nilai
+DO $$
+DECLARE
+    var TEXT := 'abc,,def,,,,,,,,ghi,jkl,,,,,mno';
+    result TEXT;
+BEGIN
+    -- Melakukan penggantian
+    result := REPLACE(REPLACE(REPLACE(var, ',', '*,'), ',*', ''), '*,', ',');
+    -- Menampilkan hasil
+    RAISE NOTICE 'Hasil: %', result;
+END $$;
+
+-- OUTPUT:
+-- NOTICE:  Hasil: abc,def,ghi,jkl,mno
+-- DO
+
+create table exams (
+	student_id int, 
+	subject varchar(20), 
+	marks int
+);
+insert into exams values 
+(1,'Chemistry',91),
+(1,'Physics',91),
+(2,'Chemistry',80),
+(2,'Physics',90),
+(3,'Chemistry',80),
+(4,'Chemistry',71),
+(4,'Physics',54),
+(5,'Chemistry',71),
+(5,'Physics',71);
+
+truncate table exams;
+
+-- tampilkan siswa yang memiliki nilai yang sama di kedua mata pelajaran 'Physics', 'Chemistry'
+SELECT student_id
+FROM exams
+WHERE subject IN ('Physics', 'Chemistry')
+GROUP BY student_id
+HAVING COUNT(DISTINCT subject) = 2 AND COUNT(DISTINCT marks) = 1;
+
+-- create table counntry (
+-- 	country_id int,
+-- 	countrynames varchar(20)
+-- );
+-- insert into counntry values 
+-- (1,'Afganistan'),
+-- (2,'Australia'),
+-- (3,'China'),
+-- (1,'France'),
+-- (1,'Germany'),
+-- (1,'India'),
+-- (1,'Italy');
+-- 
+-- select * from counntry
+-- ORDER BY 
+-- (CASE WHEN countrynames='India' then 0
+--  	  WHEN countrynames='China' then 1 
+--  	  else 2 
+--  end), countrynames;
+
+CREATE TABLE Transaction_Tbl_1(
+	 CustID int ,
+	 TranID int ,
+	 TranAmt float,
+	 TranDate date 
+);
+INSERT into Transaction_Tbl_1 VALUES (1001, 20001, 10000, CAST('2020-04-25' AS Date));
+INSERT into Transaction_Tbl_1 VALUES (1001, 20002, 15000, CAST('2020-04-25' AS Date));
+INSERT into Transaction_Tbl_1 VALUES (1001, 20003, 80000, CAST('2020-04-25' AS Date));
+INSERT into Transaction_Tbl_1 VALUES (1001, 20004, 20000, CAST('2020-04-25' AS Date));
+INSERT into Transaction_Tbl_1 VALUES (1002, 30001, 7000, CAST('2020-04-25' AS Date));
+INSERT into Transaction_Tbl_1 VALUES (1002, 30002, 15000, CAST('2020-04-25' AS Date));
+INSERT into Transaction_Tbl_1 VALUES (1002, 30003, 22000, CAST('2020-04-25' AS Date));
+select * from Transaction_Tbl_1;
+
+-- UNRESOLVED DOCUMENTATION
+select *,
+	   TranAmt/maximum_TranAmt
+from(
+	select *,
+		   max(TranAmt) over(partition by CustID ) as maximum_TranAmt
+	from Transaction_Tbl_1
+) t;
+
+create table covid(city varchar(50),days date,cases int);
+
+-- delete from covid;
+insert into covid values('DELHI','2022-01-01',100);
+insert into covid values('DELHI','2022-01-02',200);
+insert into covid values('DELHI','2022-01-03',300);
+insert into covid values('MUMBAI','2022-01-01',100);
+insert into covid values('MUMBAI','2022-01-02',100);
+insert into covid values('MUMBAI','2022-01-03',300);
+insert into covid values('CHENNAI','2022-01-01',100);
+insert into covid values('CHENNAI','2022-01-02',200);
+insert into covid values('CHENNAI','2022-01-03',150);
+insert into covid values('BANGALORE','2022-01-01',100);
+insert into covid values('BANGALORE','2022-01-02',300);
+insert into covid values('BANGALORE','2022-01-03',200);
+insert into covid values('BANGALORE','2022-01-04',400);
+select * from covid;
+
+select * ,
+	   rank() over(partition by city order by days asc) as rn_days,
+	   rank() over(partition by city order by cases asc) as rn_cases
+from covid
+order by city,cases;
+/*
+ rn_days menunjukkan urutan kronologis terjadinya kasus COVID-19 di setiap kota, 
+ rn_cases menunjukkan urutan jumlah kasus COVID-19 dari yang paling sedikit 
+ hingga yang paling banyak di setiap kota.
+ */
+
+-- Tampilkan kota yang casenya terus meningkat secara continuos
+with abcd as
+(
+	select *,
+		   rank() over(partition by city order by days asc) - rank() over(partition by city order by cases asc) as diff
+	from covid 
+)
+select city from abcd 
+group by city
+having count(distinct diff) = 1 and max(diff)=0;
+
+
+create table company_users (
+	company_id int,
+	user_id int,
+	language varchar(20)
+);
+insert into company_users values (1,1,'English')
+,(1,1,'German')
+,(1,2,'English')
+,(1,3,'German')
+,(1,3,'English')
+,(1,4,'English')
+,(2,5,'English')
+,(2,5,'German')
+,(2,5,'Spanish')
+,(2,6,'German')
+,(2,6,'Spanish')
+,(2,7,'English');
+
+-- tamplkan id company yang memiliki lebih dari 1 user 
+-- yang bisa menggunakan bahasa english dan german.
+select company_id,
+	   count(1) as num_of_users 
+from (
+	select company_id,
+		   user_id
+	from company_users 
+	where language in('English','German')
+	group by company_id,user_id
+	having count(1)=2 
+) as a 
+group by company_id
+having count(1)>=2 ;
+
+-- tamplkan id company yang memiliki lebih dari 1 user 
+-- yang bisa menggunakan bahasa english dan german.
+-- CTE.
+with temp as 
+(
+    select *, 
+    	   row_number() over (partition by user_id) as rn
+    from company_users
+    where language in('English','German')
+)
+select company_id, 
+	   count(user_id) as num_of_users
+from temp
+where rn > 1
+group by company_id
+having count(user_id) > 1;
+
+-- CREATE TABLE MIN_MAX_SEQ (
+-- 	groupss varchar(20),
+-- 	Sequence  int
+-- );
+-- INSERT INTO MIN_MAX_SEQ VALUES('A',1);
+-- INSERT INTO MIN_MAX_SEQ VALUES('A',2);
+-- INSERT INTO MIN_MAX_SEQ VALUES('A',3);
+-- INSERT INTO MIN_MAX_SEQ VALUES('A',5);
+-- INSERT INTO MIN_MAX_SEQ VALUES('A',6);
+-- INSERT INTO MIN_MAX_SEQ VALUES('A',8);
+-- INSERT INTO MIN_MAX_SEQ VALUES('A',9);
+-- INSERT INTO MIN_MAX_SEQ VALUES('B',11);
+-- INSERT INTO MIN_MAX_SEQ VALUES('C',1);
+-- INSERT INTO MIN_MAX_SEQ VALUES('C',2);
+-- INSERT INTO MIN_MAX_SEQ VALUES('C',3);
+-- 
+-- select GROUPSS, 
+-- 	   SEQUENCE ,
+-- 	   ROW_NUMBER() OVER(PARTITION BY GROUPSS ORDER BY SEQUENCE) as rnk
+-- from MIN_MAX_SEQ;
+
+--CREATE TABLE Emp_emails_string (
+--	EMPID int,
+--	Gender varchar(3),
+--	EmailID varchar(30),
+--	DeptID int
+--);
+--INSERT INTO Emp_emails_string VALUES (1001,'M','YYYYY@gmaix.com',104);
+--INSERT INTO Emp_emails_string VALUES (1002,'M','ZZZ@gmaix.com',103);
+--INSERT INTO Emp_emails_string VALUES (1003,'F','AAAAA@gmaix.com',102);
+--INSERT INTO Emp_emails_string VALUES (1004,'F','PP@gmaix.com',104);
+--INSERT INTO Emp_emails_string VALUES (1005,'M','CCCC@yahu.com',101);
+--INSERT INTO Emp_emails_string VALUES (1006,'M','DDDDD@yahu.com',100);
+--INSERT INTO Emp_emails_string VALUES (1007,'F','E@yahu.com',102);
+--INSERT INTO Emp_emails_string VALUES (1008,'M','M@yahu.com',102);
+--INSERT INTO Emp_emails_string VALUES (1009,'F','SS@yahu.com',100);
+--
+--select * from Emp_emails_string; 
+
+CREATE TABLE Order_Tbl(
+	ORDER_DAY date,
+	ORDER_ID varchar(10) ,
+	PRODUCT_ID varchar(10) ,
+	QUANTITY int ,
+	PRICE int 
+);
+INSERT INTO Order_Tbl  VALUES ('2015-05-01','ODR1', 'PROD1', 5, 5);
+INSERT INTO Order_Tbl   VALUES ('2015-05-01','ODR2', 'PROD2', 2, 10);
+INSERT INTO Order_Tbl  VALUES ('2015-05-01','ODR3', 'PROD3', 10, 25);
+INSERT INTO Order_Tbl  VALUES ('2015-05-01','ODR4', 'PROD1', 20, 5);
+INSERT INTO Order_Tbl  VALUES ('2015-05-02','ODR5', 'PROD3', 5, 25);
+INSERT INTO Order_Tbl  VALUES ('2015-05-02','ODR6', 'PROD4', 6, 20);
+INSERT INTO Order_Tbl  VALUES ('2015-05-02','ODR7', 'PROD1', 2, 5);
+INSERT INTO Order_Tbl  VALUES ('2015-05-02','ODR8', 'PROD5', 1, 50);
+INSERT INTO Order_Tbl  VALUES ('2015-05-02','ODR9', 'PROD6', 2, 50);
+INSERT INTO Order_Tbl  VALUES ('2015-05-02','ODR10','PROD2', 4, 10);
+
+select * from Order_Tbl;
+
+-- tulis kueri sql untuk mendapatkan semua produk yang terjual 
+-- pada kedua hari dan berapa kali produk tersebut terjual
+select product_id,
+	   count(product_id) as COUNT_n,
+	   count(distinct ORDER_dAY)
+from Order_Tbl
+GROUP BY product_id
+HAVING COUNT(distinct ORDER_dAY) > 1;
+
+-- tampilkan semua product ter-order pada tanggal 2 mei
+select product_id  from Order_Tbl
+where order_day = '2015-05-02'
+EXCEPT
+select product_id  from Order_Tbl
+where order_day = '2015-05-01';
+
+-- subquerry
+select distinct(product_id)  from Order_Tbl
+where order_day = '2015-05-02' 
+and product_id not in (select product_id  from Order_Tbl
+where order_day = '2015-05-01' );
+
+-- join
+select A.product_id,B.product_id 
+FROM(
+	select product_id  from Order_Tbl
+	where order_day = '2015-05-02' ) as A
+LEFT JOIN (
+	select product_id  from Order_Tbl
+	where order_day = '2015-05-01') as  B
+ON A.PRODUCT_ID = B.PRODUCT_ID
+WHERE B.PRODUCT_ID IS null;
+
+create table mproducts(
+	product_id varchar(20) ,
+	cost int
+);
+insert into mproducts values ('P1',200),('P2',300),('P3',500),('P4',800);
+
+create table mcustomer_budget(
+	customer_id int,
+	budget int
+);
+insert into mcustomer_budget values (100,400),(200,800),(300,1500);
+
+select * from mproducts;
+select * from mcustomer_budget;
+
+-- find how many products falls in customer budget aong with its list of product
+with runinng_cost as (
+select *,
+sum(cost) over(order by cost asc) as runing_cst
+from mproducts 
+) 
+select customer_id,budget,count(1) as no_of_products,GROUP_CONCAT(product_id,',') as list_of_product from mcustomer_budget cb
+left join runinng_cost rc on
+rc.runing_cst <  cb.budget
+group by customer_id,budget
+
+/*
+ Temukan jumlah produk yang cocok dengan anggaran masing-masing pelanggan, 
+ bersama dengan daftar produk yang dapat dibeli oleh masing-masing pelanggan.
+ */
+WITH running_cost AS 
+(
+    SELECT *,
+           SUM(cost) OVER (ORDER BY cost ASC) AS running_cost
+    FROM mproducts 
+) 
+SELECT cb.customer_id,
+       cb.budget,
+       COUNT(1) AS no_of_products,
+       STRING_AGG(rc.product_id, ',') AS list_of_product
+FROM mcustomer_budget cb
+LEFT JOIN running_cost rc ON rc.running_cost < cb.budget
+GROUP BY cb.customer_id, cb.budget;
+
+CREATE TABLE subscriber (
+	sms_date date ,
+	sender varchar(20) ,
+	receiver varchar(20) ,
+	sms_no int
+);
+INSERT INTO subscriber VALUES ('2020-4-1', 'Avinash', 'Vibhor',10);
+INSERT INTO subscriber VALUES ('2020-4-1', 'Vibhor', 'Avinash',20);
+INSERT INTO subscriber VALUES ('2020-4-1', 'Avinash', 'Pawan',30);
+INSERT INTO subscriber VALUES ('2020-4-1', 'Pawan', 'Avinash',20);
+INSERT INTO subscriber VALUES ('2020-4-1', 'Vibhor', 'Pawan',5);
+INSERT INTO subscriber VALUES ('2020-4-1', 'Pawan', 'Vibhor',8);
+INSERT INTO subscriber VALUES ('2020-4-1', 'Vibhor', 'Deepak',50);
+
+/*
+Hitung total jumlah pesan SMS antara pasangan pengirim 
+dan penerima tertentu pada tanggal tertentu.
+*/
+select sms_date, 
+	   p1,
+	   p2, 
+	   sum(sms_no) as total_sms 
+from (
+	select sms_date,
+		   case when sender<receiver then sender else  receiver end as p1,
+		   case when sender>receiver then sender else  receiver end as p2,
+		   sms_no
+	from subscriber )as A
+group by sms_date,p1,p2;
+
+CREATE TABLE cityy (
+	cityname varchar(20),
+	citypop int ,
+	state varchar(20)
+);
+
+INSERT INTO cityy VALUES ('Howrah',10000,'West Bengal');
+INSERT INTO cityy VALUES ('Kolkata',70000,'West Bengal');
+INSERT INTO cityy VALUES ('noida',15000,'UP');
+INSERT INTO cityy VALUES ('ghaziabad',80000,'UP');
+
+-- temukan persentase kontribusi kota terhadap total penduduk negara bagian
+SELECT cityname,
+       citypop,
+       p.state,
+       CAST(ROUND(((citypop / "total") * 100), 0) AS FLOAT) AS "Percentage contribution of city to state's total population"
+FROM cityy p
+JOIN (
+    SELECT state,
+           SUM(citypop) AS "total"
+    FROM cityy
+    GROUP BY state
+) t ON p.state = t.state
+ORDER BY p.state, citypop DESC;
+
+Create Table gendersort(
+	Name varchar(10),
+	Age int,
+	Gender varchar(10)
+);
+
+Insert Into gendersort Values('A', 30, 'M'),('B', 20, 'M'),('C', 50, 'M'),('D', 40, 'M'),('E', 10, 'M'),('G', 20, 'F'),('H', 10, 'F'),('I', 30, 'F'),('J', 50, 'F'),('K', 20, 'F')
+
+-- tampilkan semua data, 
+-- gender M ascending,
+-- gender F descending.
+Select * From gendersort
+Order By 
+Case When Gender = 'M' Then Age End Asc,
+Case When Gender = 'F' Then Age End desc;
