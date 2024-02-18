@@ -304,3 +304,378 @@ FROM r_cte
 INNER JOIN sales ON dates BETWEEN period_start AND period_end
 GROUP BY product_id, EXTRACT(YEAR FROM dates)
 ORDER BY product_id, EXTRACT(YEAR FROM dates);
+
+
+--create table emmp(
+--	emp_id int,
+--	emp_name varchar(20),
+--	department_id int,
+--	manager_id int
+--);
+select * from emmp;
+--insert into emmp values(1,'Adam Owens',103,3);
+--insert into emmp values(2,'Smith Jones',102,5);
+--insert into emmp values(3,'Hilary Riles',101,4);
+--insert into emmp values(4,'Richard Robinson',103,3);
+--insert into emmp values(5,'Samuel Pitt',103,3);
+--insert into emmp values(6,'Mark Miles',null,7);
+--insert into emmp values(7,'Jenny Jeff',999,null);
+
+-- Menggunakan RECURSIVE CTE untuk menemukan manajer langsung dari setiap karyawan
+WITH RECURSIVE EmpMgrCTE AS (
+    SELECT emp_id, emp_name, manager_id, 0 AS EmpLevel
+    FROM emmp
+    WHERE manager_id IS NULL
+    UNION ALL
+    SELECT EMPP.emp_id, EMPP.emp_name, EMPP.manager_id, mngr.EmpLevel + 1
+    FROM emmp EMPP
+    INNER JOIN EmpMgrCTE AS mngr ON EMPP.manager_id = mngr.emp_id
+)
+SELECT * FROM EmpMgrCTE
+ORDER BY EmpLevel;
+
+-- Cara 1: Memeriksa tanggal yang valid untuk 29 Februari
+DO $$
+DECLARE
+    year_val INT := 2024;
+    leap_year_text TEXT;
+BEGIN
+    BEGIN
+        PERFORM TO_DATE(year_val || '0229', 'YYYYMMDD');
+        leap_year_text := 'LEAP YEAR';
+    EXCEPTION WHEN others THEN
+        leap_year_text := 'NOT A LEAP YEAR';
+    END;
+
+    RAISE NOTICE '%', leap_year_text;
+END $$;
+
+
+-- Cara 2: Menggunakan pernyataan CASE untuk menentukan apakah tahun kabisat
+DO $$
+DECLARE
+    year_val INT := 2024;
+    leap_year_text TEXT;
+BEGIN
+    IF (year_val % 4 = 0 AND year_val % 100 <> 0) OR (year_val % 400 = 0) THEN
+        leap_year_text := 'LEAP YEAR';
+    ELSE
+        leap_year_text := 'NOT A LEAP YEAR';
+    END IF;
+
+    RAISE NOTICE '%', leap_year_text;
+END $$;
+
+-- Tampilkan semua date dari 2023-02-01 sampai 2023-03-7
+WITH RECURSIVE calendar AS (
+  SELECT DATE '2023-02-01'::TIMESTAMP AS cal_date
+  UNION ALL
+  SELECT cal_date + INTERVAL '1 day'
+  FROM calendar
+  WHERE cal_date < '2023-03-7'
+)
+SELECT cal_date::DATE
+FROM calendar;
+
+-- create table userss (
+-- 	user_id integer,
+-- 	name varchar(20),
+-- 	join_date date
+-- );
+-- insert into userss values 
+-- (1, 'Jon','2020-02-14'), 
+-- (2, 'Jane', '2020-02-14'), 
+-- (3, 'Jill','2020-02-15' ), 
+-- (4, 'Josh','2020-02-15'), 
+-- (5, 'Jean','2020-02-16'), 
+-- (6, 'Justin','2020-02-17'),
+-- (7, 'Jeremy', '2020-02-18');
+-- select * from userss;
+-- -- delete from userss;
+-- create table events(
+-- 	user_id integer,
+-- 	type varchar(10),
+-- 	access_date date
+-- );
+-- insert into events values 
+-- (1, 'Pay', '2020-03-01'), 
+-- (2, 'Music', '2020-03-02'), 
+-- (2, 'P', '2020-03-12'),
+-- (3, 'Music', '2020-03-15'), 
+-- (4, 'Music','2020-03-15'), 
+-- (1, 'P', '2020-03-16'), 
+-- (3, 'P', '2020-03-22');
+-- select * from  userss;
+-- select * from  events;
+
+-- hitung fraksi dari pengguna yang mengakses Amazon Music dan 
+-- melakukan upgrade ke keanggotaan Prime
+-- dalam waktu 30 hari setelah mendaftar
+WITH UserMusic AS (
+    SELECT DISTINCT u.user_id
+    FROM userss u
+    JOIN events e ON u.user_id = e.user_id
+    WHERE e.type = 'Music'
+),
+UserPrime AS (
+    SELECT DISTINCT u.user_id
+    FROM userss u
+    JOIN events e ON u.user_id = e.user_id
+    WHERE e.type = 'P'
+),
+PrimeWithin30Days AS (
+    SELECT u.user_id
+    FROM userss u
+    JOIN events e ON u.user_id = e.user_id
+    WHERE e.type = 'P' AND e.access_date <= u.join_date + INTERVAL '30 days'
+)
+SELECT ROUND(COUNT(p.user_id)::NUMERIC / COUNT(m.user_id)::NUMERIC * 100, 2) AS fraction_of_users
+FROM UserMusic m
+LEFT JOIN PrimeWithin30Days p ON m.user_id = p.user_id;
+
+create table billings(
+	emp_name varchar(10),
+	bill_date date,
+	bill_rate int
+);
+insert into billings values
+('Sachin','1990-01-01',25),
+('Sehwag' ,'1989-01-01', 15),
+('Dhoni' ,'1989-1-01', 20),
+('Sachin' ,'1991-02-05', 30);
+
+create table HoursWorked (
+	emp_name varchar(20),
+	work_date date,
+	bill_hrs int
+);
+insert into HoursWorked values
+('Sachin', '1990-07-01' ,3),
+('Sachin', '1990-08-01', 5),
+('Sehwag','1990-07-01', 2),
+('Sachin','1991-07-01', 4);
+
+select * from HoursWorked;
+select * from billings;
+
+-- TOTAL CHARGES AS PER BILLING RATE
+SELECT *,
+	   LEAD(BILL_DATE - INTERVAL '1 DAY',1,'9999-12-31') OVER(PARTITION BY EMP_NAME ORDER BY BILL_DATE ASC) AS BILL_DATE_END
+FROM BILLINGS;
+
+WITH DATE_RANGE AS (
+	SELECT *,
+		   LEAD(BILL_DATE - INTERVAL '1 DAY', 1, '9999-12-31') OVER(PARTITION BY EMP_NAME ORDER BY BILL_DATE ASC) AS BILL_DATE_END
+	FROM BILLINGS
+)
+SELECT HW.EMP_NAME, 
+	   SUM(DR.BILL_RATE * HW.BILL_HRS) 
+FROM DATE_RANGE DR
+INNER JOIN HoursWorked HW 
+ON DR.EMP_NAME = HW.EMP_NAME AND HW.WORK_DATE BETWEEN DR.BILL_DATE AND DR.BILL_DATE_END -- Penambahan argument
+GROUP BY HW.EMP_NAME;
+
+-- CREATE table activityy(
+-- 	user_id char(20),
+-- 	event_name char(20),
+-- 	event_date date,
+-- 	country char(20)
+-- );
+-- insert into activityy values 
+-- (1,'app-installed','2022-01-01','India')
+-- ,(1,'app-purchase','2022-01-02','India')
+-- ,(2,'app-installed','2022-01-01','USA')
+-- ,(3,'app-installed','2022-01-01','USA')
+-- ,(3,'app-purchase','2022-01-03','USA')
+-- ,(4,'app-installed','2022-01-03','India')
+-- ,(4,'app-purchase','2022-01-03','India')
+-- ,(5,'app-installed','2022-01-03','SL')
+-- ,(5,'app-purchase','2022-01-03','SL')
+-- ,(6,'app-installed','2022-01-04','Pakistan')
+-- ,(6,'app-purchase','2022-01-04','Pakistan');
+-- select * from activityy;
+
+-- tampilkan jumlah pembelian di India dan USA
+SELECT CASE 
+	   	  WHEN country IN ('India', 'USA') THEN country 
+	   	  ELSE 'Others' 
+	   END AS new_country,
+       COUNT(DISTINCT user_id) as user_cnt 
+FROM activityy
+WHERE event_name = 'app-purchase'
+GROUP BY 
+CASE 
+	WHEN country IN ('India', 'USA') THEN country 
+	ELSE 'Others'
+END;
+
+-- tampilkan persentase user dari India dan USA
+with country_wise_users as 
+(
+	SELECT CASE 
+		   	  WHEN country IN ('India', 'USA') THEN country 
+		   	  ELSE 'Others' 
+		   END AS new_country,
+	       COUNT(DISTINCT user_id) as user_cnt 
+	FROM activityy
+	WHERE event_name = 'app-purchase'
+	GROUP BY 
+	CASE 
+		WHEN country IN ('India', 'USA') THEN country 
+		ELSE 'Others'
+	END
+),
+total as 
+(
+	select sum(user_cnt) as total_users 
+	from country_wise_users 
+)
+select new_country,
+	   user_cnt*1.0/total_users*100 as percent_users
+from country_wise_users,
+	 total;
+
+-- tampilkan aktivitas sebelumnya, 1 baris setelahnya.
+select *,
+	   lag(event_name,1) over(partition by user_id order by event_date) as prev_event_name,
+	   lag(event_date,1) over(partition by user_id order by event_date) as prev_event_date
+from activityy;
+
+-- hitung jumlah pengguna yang melakukan pembelian aplikasi 
+-- pada tanggal yang sama dengan instalasi aplikasi sebelumnya.
+WITH prev_data AS (
+    SELECT *,
+           LAG(event_name, 1) OVER (PARTITION BY user_id ORDER BY event_date) AS prev_event_name,
+           LAG(event_date, 1) OVER (PARTITION BY user_id ORDER BY event_date) AS prev_event_date
+    FROM activityy
+)
+SELECT event_date,
+       COUNT(DISTINCT user_id) AS cnt_users
+FROM prev_data
+WHERE event_name = 'app-purchase'
+  AND prev_event_name = 'app-installed'
+  AND (EXTRACT(DAY FROM event_date) - EXTRACT(DAY FROM prev_event_date)) = 1
+GROUP BY event_date;
+
+
+create table bms(
+	seat_no int ,
+	is_empty varchar(10)
+);
+insert into bms values
+(1,'N'),
+(2,'Y'),
+(3,'N'),
+(4,'Y'),
+(5,'Y'),
+(6,'Y'),
+(7,'N'),
+(8,'Y'),
+(9,'Y'),
+(10,'Y'),
+(11,'Y'),
+(12,'N'),
+(13,'Y'),
+(14,'Y');
+
+-- UNRESOLVED DOCUMENTATION
+select * from (
+SELECT *
+,LAG(is_empty,1) over(order by seat_no) as prev_1
+,LAG(is_empty,2) over(order by seat_no) as prev_2
+,Lead(is_empty,1) over(order by seat_no) as next_1
+,Lead(is_empty,2) over(order by seat_no) as next_2
+FROM BMS) A
+where is_empty = 'Y' and prev_1 = 'Y' and prev_2 = 'Y'
+or (is_empty = 'Y' and prev_1 = 'Y' and next_1 = 'Y')
+or (is_empty = 'Y' and next_1 = 'Y' and next_2 = 'Y') ;
+
+-- UNRESOLVED DOCUMENTATION
+select * from (
+SELECT *
+,sum(case when is_empty='Y' then 1 else 0 end) over(order by seat_no rows between 2 preceding and current row) as prev_2
+,sum(case when is_empty='Y' then 1 else 0 end) over(order by seat_no rows between 1 preceding and 1 following) as prev_next_1
+,sum(case when is_empty='Y' then 1 else 0 end) over(order by seat_no rows between current row and 2 following) as next_2
+FROM BMS) a 
+where prev_2=3 or prev_next_1=3 or next_2=3;
+
+-- UNRESOLVED DOCUMENTATION
+with diff_num as (
+select *
+,row_number() over(order by seat_no) as rn
+,seat_no-row_number() over(order by seat_no) as diff
+ from bms where is_empty='Y'),
+ cnt as (
+ select diff, count(1) as c from diff_num 
+ group by diff having count(1)>=3)
+ select * from diff_num where diff in (select diff from cnt) ;
+
+
+create table Contests ( contest_id INT, hacker_id INT, name VARCHAR(200) );
+insert into Contests (contest_id, hacker_id, name) values (66406, 17973, 'Rose'), (66556, 79153, 'Angela'), (94828, 80275, 'Frank');
+
+create table Colleges( college_id INT, contest_id INT );
+insert into Colleges (college_id, contest_id) values (11219, 66406), (32473, 66556), (56685, 94828);
+
+create table Challenges ( challenge_id INT, college_id INT );
+insert into Challenges (challenge_id, college_id) values (18765, 11219), (47127, 11219), (60292, 32473), (72974, 56685);
+
+create table View_Stats ( challenge_id INT, total_views INT, total_unique_views INT );
+insert into View_Stats (challenge_id, total_views, total_unique_views) values (47127, 26, 19), (47127, 15, 14), (18765, 43, 10), (18765, 72, 13), (75516, 35, 17), (60292, 11, 10), (72974, 41, 15), (75516, 75, 11);
+
+create table Submission_Stats ( challenge_id INT, total_submissions INT, total_accepted_submissions INT );
+insert into Submission_Stats (challenge_id, total_submissions, total_accepted_submissions) values (75516, 34, 12), (47127, 27, 10), (47127, 56, 18), (75516, 74, 12), (75516, 83, 8), (72974, 68, 24), (72974, 82, 14), (47127, 28, 11);
+
+select * from Contests;
+select * from Colleges;
+select * from Challenges;
+select * from View_Stats;
+select * from Submission_Stats;
+
+/*
+John mewawancarai banyak kandidat dari berbagai perguruan tinggi menggunakan tantangan dan kontes coding.
+Tulis kueri yang menampilkan kontes_id, hacker_id, nama, jumlah total_pengajuan,
+total_accepted_submissions, total_views, dan total_unique_views untuk setiap kontes yang diurutkan berdasarkan kontes_id.
+Kecualikan kontes dari hasil jika keempat jumlah semuanya nol.
+*/
+
+select con.contest_id,
+        con.hacker_id, 
+        con.name, 
+        sum(total_submissions), --stats table
+        sum(total_accepted_submissions), -- stats table
+        sum(total_views), -- from view_stats
+		sum(total_unique_views)
+from contests con 
+join colleges col on con.contest_id = col.contest_id 
+join challenges cha on  col.college_id = cha.college_id 
+left join
+(select challenge_id, sum(total_views) as total_views, sum(total_unique_views) as total_unique_views
+	from view_stats group by challenge_id) vs on cha.challenge_id = vs.challenge_id 
+left join
+(select challenge_id, sum(total_submissions) as total_submissions, sum(total_accepted_submissions) as total_accepted_submissions 
+ from submission_stats group by challenge_id) ss on cha.challenge_id = ss.challenge_id
+    group by con.contest_id, con.hacker_id, con.name;
+
+-- Karyawan dengan gaji terdekat dengan gaji rata-rata di suatu departemen.
+select * from empt;
+
+WITH SAL_DIFF AS 
+(
+	SELECT emp_name, 
+		   salary, 
+		   empt.department_id, 
+		   Avg_Sal, 
+		   (salary - Avg_Sal) as SalDiff,
+		   RANK() OVER(PARTITION BY empt.department_id ORDER BY ABS(salary - Avg_Sal)) AS Sal_Diff
+	FROM empt 
+	INNER JOIN (
+		SELECT empt.department_id,
+			   AVG(salary) as Avg_Sal 
+		from empt 
+		GROUP BY department_id
+	) AS Avg_Sal
+	ON empt.department_id = Avg_Sal.department_id
+)
+SELECT emp_name ,salary, department_id FROM SAL_DIFF 
+WHERE Sal_Diff <= 1;
